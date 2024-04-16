@@ -11,6 +11,7 @@ const app = express();
 app.use(express.static('public'));
 app.use(express.json());
 
+
 // view engine
 app.set('view engine', 'ejs');
 
@@ -28,4 +29,3 @@ mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true})
 
   app.use('/api/users/', usersRouter);
 
-  
