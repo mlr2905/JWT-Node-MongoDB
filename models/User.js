@@ -3,6 +3,7 @@ const { isEmail } = require('validator');
 const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
+
   id_pg: {
     type: Number,
     required: true
@@ -27,11 +28,7 @@ const userSchema = new mongoose.Schema({
     type: Number,
     required: true
   }
-//   postgresql_id: {
-//     type: String,
-//     required: [true, 'Please provide a PostgreSQL ID'],
-//     unique: true
-//   }  
+
 });
 
 // fire a function before doc saved to db
