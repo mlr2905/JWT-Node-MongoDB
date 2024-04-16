@@ -1,9 +1,11 @@
 {
     "mongodb": {
-        "user": "root",
-        "password": "rootpassword",
-        "host": "localhost",
+        "user": "7585474",
+        "password": "Nyfo91h1uBFBzcaW",
+        "host": "mongomr.47dajov.mongodb.net",
         "port": "27022",
         "authSource": "admin"
     }
 }
+
+"mongodb+srv://7585474:Nyfo91h1uBFBzcaW@mongomr.47dajov.mongodb.net/mongoT3?retryWrites=true&w=majority";

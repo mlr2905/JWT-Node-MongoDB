@@ -14,8 +14,8 @@ app.use(express.json());
 app.set('view engine', 'ejs');
 
 // mongodb://root:rootpassword@localhost:27022/user-demo?authSource=admin
-const dbURI = `mongodb://${config.mongodb.user}:${config.mongodb.password}@` +
-        `${config.mongodb.host}:${config.mongodb.port}/user-demo?authSource=${config.mongodb.authSource}`;
+const dbURI ="mongodb+srv://7585474:Nyfo91h1uBFBzcaW@mongomr.47dajov.mongodb.net/mongoT3?retryWrites=true&w=majority";
+;
 //const dbURI = `mongodb://${config.mongodb.user}:${config.mongodb.password}@${config.mongodb.host}:${config.mongodb.port}/user-demo?authSource=${config.mongodb.authSource}`;
 
 mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true})
