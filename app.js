@@ -1,6 +1,8 @@
 
 const express = require('express');
 const mongoose = require('mongoose');
+mongoose.set('strictQuery', true);
+
 const usersRouter = require('./routers/usersRouter');
 
 const app = express(); 
@@ -25,4 +27,3 @@ mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true})
   .catch((err) => console.log(err));
 
   app.use('/api/users/', usersRouter);
-  
