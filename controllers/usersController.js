@@ -7,7 +7,7 @@ module.exports.post = async (request, response) => {
   
     try {
       const user = await User.create({ email, password });
-      response.status(201).json({ user_id: user._id });
+      response.status(201).json({ user_id: user.id_pg });
     }
     catch(err) {
       const errors = handleErrors(err);
