@@ -3,7 +3,7 @@ const { isEmail } = require('validator');
 const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
-  id: {
+  id_pg: {
     type: Number,
     required: true
   },
