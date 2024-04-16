@@ -27,26 +27,21 @@ module.exports.post = async (request, response) => {
       res.status(500).json({ error: err.message });
     }
   };
+
+  
 module.exports.search_users = async (req, res) => {
   try {
     const searchQuery = req.query;
 
     // Check if searching by ID
-    if (searchQuery._id) {
-      // Convert _id to ObjectId only if searching by ID
-      try {
-        searchQuery._id = mongoose.Types.ObjectId(searchQuery._id);
-      } catch (err) {
-        // Handle invalid _id format (optional)
-        return res.status(400).json({ error: "Invalid user ID format" });
-      }
-    }
+      // Convert _id to ObjectId only if searching by 
 
     // Perform user search based on searchQuery
     const users = await User.find(searchQuery);
 
-    if (users) {
-      res.status(200).json(users);
+    if (users[0].id_pg > 0) {
+
+      res.status(200).json(users[0]);
     } else {
       res.status(404).json({ status: "לא נמצאו משתמשים התואמים לקריטריון" });
     }
