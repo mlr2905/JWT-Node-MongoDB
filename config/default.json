@@ -1,0 +1,9 @@
+{
+    "mongodb": {
+        "user": "root",
+        "password": "rootpassword",
+        "host": "localhost",
+        "port": "27022",
+        "authSource": "admin"
+    }
+}
