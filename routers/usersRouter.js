@@ -11,7 +11,6 @@ router.get('/:id', usersController.get_by_id)
 router.delete('/:id', usersController.delete)
 router.delete('/', usersController.deleteAll)
 
-// router.get('search', usersController.search_user)
 
 
 module.exports = router;
