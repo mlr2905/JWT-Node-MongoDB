@@ -91,7 +91,7 @@ module.exports.logout_get = (req, res) => {
   res.status(200).json({ status: "logged out"});
 }
 
-module.exports.get_protected_data = (req, res) => {
+module.exports.validate_token  = (req, res) => {
   console.log("res",req.headers.authorization);
   const token = req.headers.authorization.split(' ')[1]
     console.log('token',token);
@@ -112,7 +112,7 @@ module.exports.get_protected_data = (req, res) => {
             // check if this user is still in the db
           let user = await User.findById(decodedToken.id);
           console.log('200');
-          res.status(200).json({ status: "protected data achieved"});
+          res.status(200).json({ status: "token valid", id: user.id, email: user.email});
           return;
         }
       });
