@@ -76,7 +76,7 @@ module.exports.login_post = async (req, res) => {
     const user = users[0]
     const token = createToken(user._id, searchQuery.email);
     // res.b('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-    res.status(200).json({ user: user._id, jwt:token });
+    res.status(200).json({ id: user._id, jwt:token });
     }
   } 
   catch (err) {
@@ -92,7 +92,6 @@ module.exports.logout_get = (req, res) => {
 }
 
 module.exports.validate_token  = (req, res) => {
-  console.log("res",req.headers.authorization);
   const token = req.headers.authorization.split(' ')[1]
     console.log('token',token);
 
@@ -112,7 +111,7 @@ module.exports.validate_token  = (req, res) => {
             // check if this user is still in the db
           let user = await User.findById(decodedToken.id);
           console.log('200');
-          res.status(200).json({ status: "token valid", id: user.id, email: user.email});
+          res.status(200).json({ status: "token valid", id: user.id});
           return;
         }
       });
