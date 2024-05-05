@@ -75,7 +75,7 @@ module.exports.login_post = async (req, res) => {
     const users = await User.find(searchQuery);
     if (users) {
       console.log('users',users);
-      res.status(200).json({ status:  users[0]});
+      res.status(200).json({ body:  users[0]});
 
     }
   } 
