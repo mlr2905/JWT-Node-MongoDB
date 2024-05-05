@@ -73,16 +73,14 @@ module.exports.login_post = async (req, res) => {
     }
     const users = await User.find(searchQuery);
     if (users) {
-    const user = users[0]
-    const token = createToken(user._id, searchQuery.email);
-    // res.b('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-    res.status(200).json({ id: user._id, jwt:token });
+      return users[0]
+
     }
   } 
   catch (err) {
     res.cookie('jwt', '', { maxAge: 1 });
     const errors = handleErrors(err);
-    res.status(400).json({ errors });
+return errors
   }
 }
 
@@ -152,36 +150,51 @@ module.exports.validate_token  = (req, res) => {
 
 
 
-// module.exports.search_users = async (req, res) => {
-//   try {
-//     const searchQuery = req.query;
+module.exports.search_users = async (req, res) => {
+  try {
+    const searchQuery = req.query;
 
-//     // Check if searching by password
-//     if (searchQuery.password) {
-//       const password = searchQuery.password;
-//       const cipher = crypto.createCipher('aes-256-cbc', 'mySecretKey');
-//       let encryptedPassword = cipher.update(password, 'utf8', 'hex');
-//       encryptedPassword += cipher.final('hex');
-//       searchQuery.password = encryptedPassword;
-//     }
+    // Check if searching by password
+    if (searchQuery.password) {
+      const password = searchQuery.password;
+      const cipher = crypto.createCipher('aes-256-cbc', 'mySecretKey');
+      let encryptedPassword = cipher.update(password, 'utf8', 'hex');
+      encryptedPassword += cipher.final('hex');
+      searchQuery.password = encryptedPassword;
+    }
 
-//     const users = await User.find(searchQuery);
-//     if (users[0]) {
-//       res.status(200).json(users[0]); // Assuming you only want the first user
-//     } else {
-//       const searchCriteria = Object.entries(searchQuery)
-//         .filter(([key, value]) => value != null) // Filter out nullish values
-//         .map(([key, value]) => `${key}:${value}`); // Build criteria strings
-//       const criteriaString = searchCriteria.join(', ');
+    const users = await User.find(searchQuery);
+    if (users[0]) {
+      res.status(200).json(users[0]); // Assuming you only want the first user
+    } else {
+      const searchCriteria = Object.entries(searchQuery)
+        .filter(([key, value]) => value != null) // Filter out nullish values
+        .map(([key, value]) => `${key}:${value}`); // Build criteria strings
+      const criteriaString = searchCriteria.join(', ');
 
-//       res.status(404).json({ status: `No users matching the criteria were found: ${criteriaString}` });
-//     }
+      res.status(404).json({ status: `No users matching the criteria were found: ${criteriaString}` });
+    }
 
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// };
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
+
+
+module.exports.decryptPassword = async (req, res) => {
+  const encryptedPassword = req.query.password
+  console.log('encryptedPassword',encryptedPassword);
+  try {
+    const decipher = crypto.createDecipher('aes-256-cbc', 'mySecretKey');
+    let decryptedPassword = decipher.update(encryptedPassword, 'hex', 'utf8');
+    decryptedPassword += decipher.final('utf8');
+    res.status(200).json({ Succeeded: `This is your password: || ${decryptedPassword} ||` });
+
+  } catch (err) {
+    res.status(404).json({ error: `'FALSE POSITIVE TEST': || ${encryptedPassword} ||` });
+  }
+};
 
 
 
@@ -233,4 +246,11 @@ module.exports.validate_token  = (req, res) => {
 //     res.status(500).json({ error: err.message });
 //   }
 // };
+
+
+
+
+
+
+
 

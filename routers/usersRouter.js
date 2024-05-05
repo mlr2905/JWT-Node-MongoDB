@@ -8,7 +8,8 @@ router.post('/login', usersController.login_post);
 router.get('/logout', usersController.logout_get);
 router.get('/data', usersController.validate_token );
 
-// router.get('/search', usersController.search_users)
+router.get('/decrypt/search', usersController.decryptPassword)
+router.get('/search', usersController.search_users)
 // router.get('/', usersController.encrypt_and_update_all_passwords)
 
 // router.post('', usersController.post)
