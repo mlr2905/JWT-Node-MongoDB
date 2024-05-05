@@ -33,12 +33,12 @@ const handleErrors = (err) => {
 }
 
 // create json web token
-// const maxAge = 3 * 24 * 60 * 60;
-// const createToken = (id, email) => {
-// return jwt.sign({ id, email }, 'secret key', {
-//   expiresIn: maxAge
-// });
-// };
+const maxAge = 3 * 24 * 60 * 60;
+const createToken = (id, email) => {
+return jwt.sign({ id, email }, 'secret key', {
+  expiresIn: maxAge
+});
+};
 
 module.exports.signup_post = async (request, response) => {
   const { id_pg,username,email, password ,role_id} = request.body;
@@ -62,6 +62,7 @@ module.exports.signup_post = async (request, response) => {
 module.exports.login_post = async (req, res) => {
   try {
     const searchQuery = req.body;
+    console.log(searchQuery);
     // Check if searching by password
     if (searchQuery.password) {
       const password = searchQuery.password;
@@ -71,17 +72,19 @@ module.exports.login_post = async (req, res) => {
       searchQuery.password = encryptedPassword;
     }
     const users = await User.find(searchQuery);
-    if (users && users.length > 0) { // Check if users array is not empty
-      res.status(200).json(users[0]);
-    } else {
-      res.status(404).json({ error: 'User not found' }); // Handle case where no users are found
+    if (users) {
+    const user = users[0]
+    const token = createToken(user._id, searchQuery.email);
+    // res.b('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
+    res.status(200).json({ id: user._id, jwt:token });
     }
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+  } 
+  catch (err) {
+    res.cookie('jwt', '', { maxAge: 1 });
+    const errors = handleErrors(err);
+    res.status(400).json({ errors });
   }
 }
-
 
 module.exports.logout_get = (req, res) => {
   res.cookie('jwt', '', { maxAge: 1 });
@@ -191,7 +194,7 @@ module.exports.decryptPassword = async (req, res) => {
     res.status(200).json({ Succeeded: `This is your password: || ${decryptedPassword} ||` });
 
   } catch (err) {
-    res.status(404).json({ error: `'FALSE POSITIVE TEST': || ${encryptedPassword} ||` });
+    res.status(404).json({ err: `'FALSE POSITIVE TEST': || ${encryptedPassword} ||` });
   }
 };
 
