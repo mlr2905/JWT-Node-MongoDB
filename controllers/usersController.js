@@ -92,8 +92,9 @@ module.exports.logout_get = (req, res) => {
 }
 
 module.exports.validate_token  = (req, res) => {
-  const token = req.headers.authorization.split(' ')[1]
-    console.log('token',token);
+  console.log(req.body);
+  const token = req.body.token; // Assuming the token is sent in the body of the request
+  console.log('token',token);
 
     if (!token) {
         console.log('401');
