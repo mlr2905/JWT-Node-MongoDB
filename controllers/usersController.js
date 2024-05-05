@@ -61,7 +61,7 @@ module.exports.signup_post = async (request, response) => {
 
 module.exports.login_post = async (req, res) => {
   try {
-    console.log('req.body',req.body);
+    console.log('req.body', req.body);
     const searchQuery = req.body;
     console.log(searchQuery);
     // Check if searching by password
@@ -73,18 +73,18 @@ module.exports.login_post = async (req, res) => {
       searchQuery.password = encryptedPassword;
     }
     const users = await User.find(searchQuery);
-    if (users) {
-      console.log('users',users);
+    if (users && users.length > 0) { // Check if users array is not empty
+      console.log('users', users);
       res.status(200).json(users[0]);
-
+    } else {
+      res.status(404).json({ error: 'User not found' }); // Handle case where no users are found
     }
-  } 
-  catch (err) {
-    res.cookie('jwt', '', { maxAge: 1 });
-    const errors = handleErrors(err);
-return errors
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 }
+
 
 module.exports.logout_get = (req, res) => {
   res.cookie('jwt', '', { maxAge: 1 });
