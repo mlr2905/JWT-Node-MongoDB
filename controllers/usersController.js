@@ -61,6 +61,7 @@ module.exports.signup_post = async (request, response) => {
 
 module.exports.login_post = async (req, res) => {
   try {
+    console.log('req.body',req.body);
     const searchQuery = req.body;
     console.log(searchQuery);
     // Check if searching by password
@@ -73,7 +74,8 @@ module.exports.login_post = async (req, res) => {
     }
     const users = await User.find(searchQuery);
     if (users) {
-      return users[0]
+      console.log('users',users);
+      res.status(200).json({ status:  users[0]});
 
     }
   } 
