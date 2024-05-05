@@ -33,12 +33,12 @@ const handleErrors = (err) => {
 }
 
 // create json web token
-const maxAge = 3 * 24 * 60 * 60;
-const createToken = (id, email) => {
-return jwt.sign({ id, email }, 'secret key', {
-  expiresIn: maxAge
-});
-};
+// const maxAge = 3 * 24 * 60 * 60;
+// const createToken = (id, email) => {
+// return jwt.sign({ id, email }, 'secret key', {
+//   expiresIn: maxAge
+// });
+// };
 
 module.exports.signup_post = async (request, response) => {
   const { id_pg,username,email, password ,role_id} = request.body;
@@ -61,9 +61,7 @@ module.exports.signup_post = async (request, response) => {
 
 module.exports.login_post = async (req, res) => {
   try {
-    console.log('req.body', req.body);
     const searchQuery = req.body;
-    console.log(searchQuery);
     // Check if searching by password
     if (searchQuery.password) {
       const password = searchQuery.password;
@@ -74,7 +72,6 @@ module.exports.login_post = async (req, res) => {
     }
     const users = await User.find(searchQuery);
     if (users && users.length > 0) { // Check if users array is not empty
-      console.log('users', users);
       res.status(200).json(users[0]);
     } else {
       res.status(404).json({ error: 'User not found' }); // Handle case where no users are found
