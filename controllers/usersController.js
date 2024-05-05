@@ -112,7 +112,7 @@ module.exports.validate_token  = (req, res) => {
             // check if this user is still in the db
           let user = await User.findById(decodedToken.id);
           console.log('200');
-          res.status(200).json({ status: "token valid", id: user.id});
+          res.status(200).json({ valid: "token valid"});
           return;
         }
       });
