@@ -33,12 +33,7 @@ const handleErrors = (err) => {
 }
 
 // create json web token
-const maxAge = 3 * 24 * 60 * 60;
-const createToken = (id, email) => {
-return jwt.sign({ id, email }, 'secret key', {
-  expiresIn: maxAge
-});
-};
+
 
 module.exports.signup_post = async (request, response) => {
   const { email, password } = request.body;
@@ -54,7 +49,6 @@ module.exports.signup_post = async (request, response) => {
     response.status(201).json({ id: user._id ,email:email,username:username});
   }
   catch(err) {
-    res.cookie('jwt', '', { maxAge: 1 });
     const errors = handleErrors(err);
     response.status(400).json({ errors });
   }
