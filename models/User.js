@@ -4,14 +4,7 @@ const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
 
-  id_pg: {
-    type: Number,
-    required: true
-  },
-  username: {
-    type: String,
-    required: true
-  },
+ 
   email: {
     type: String,
     required: [true, 'Please enter an email'],
@@ -23,12 +16,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please enter a password'],
     minlength: [6, 'Minimum password length is 6 characters'],
-  },
-  role_id: {
-    type: Number,
-    required: true
   }
-
+ 
 });
 
 // fire a function before doc saved to db

@@ -41,15 +41,17 @@ return jwt.sign({ id, email }, 'secret key', {
 };
 
 module.exports.signup_post = async (request, response) => {
-  const { id_pg,username,email, password ,role_id} = request.body;
+  const { email, password } = request.body;
+  const username = email.substring(0, email.indexOf('@'));
+
   //email = "itayhau@gmail.com"
   //password = "123456"
 
   try {
     const user = await User.create({ email, password });
-    const token = createToken(user._id, email);
-    response.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-    response.status(201).json({ user: user._id });
+    // const token = createToken(user._id, email);
+    // response.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
+    response.status(201).json({ id: user._id ,email:email,username:username});
   }
   catch(err) {
     res.cookie('jwt', '', { maxAge: 1 });
