@@ -43,7 +43,9 @@ module.exports.signup_post = async (request, response) => {
   //password = "123456"
 
   try {
+    console.log('mongo email, password',email, password);
     const user = await User.create({ email, password });
+    console.log('mongo תשובה',user);
     // const token = createToken(user._id, email);
     // response.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
     response.status(201).json({ id: user._id ,email:email,username:username});
