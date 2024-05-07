@@ -50,7 +50,7 @@ module.exports.signup_post = async (request, response) => {
     // response.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
     const a = { id: user._id ,email:email,username:username} 
     console.log('תשובה שנשלחה לשרת ממנוגו',a);
-    response.status(201).json({ email:email,username:username,mingo_id: user._id });
+    response.status(201).json({ email:email,username:username,mongo_id: user._id });
   }
   catch(err) {
     const errors = handleErrors(err);
