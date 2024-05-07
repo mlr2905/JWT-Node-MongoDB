@@ -18,9 +18,15 @@ app.get('*', async (req, res, next) => {
   // המשך עיבוד הבקשה כרגיל
 });
 app.post('*', async (req, res, next) => {
-  const clientIP = req.connection.remoteAddress
+  const allowedIP = '216.24.57.4'; // כתובת ה-IP שמורשת
+  const clientIP = req.ip;
+
+  if (clientIP !== allowedIP) {
+      return res.status(403).send("Access denied");
+  }
+
   console.log('Client IP:', clientIP);
-  next()
+  next();
   // המשך עיבוד הבקשה כרגיל
 });
 
