@@ -11,24 +11,24 @@ const app = express();
 app.use(express.static('public'));
 app.use(express.json());
 
-app.get('*', async (req, res, next) => {
-  const clientIP = req.ip;
-  console.log('Client IP:', clientIP);
-  next()
-  // המשך עיבוד הבקשה כרגיל
-});
-app.post('*', async (req, res, next) => {
-  const allowedIP = '216.24.57.4'; // כתובת ה-IP שמורשת
-  const clientIP = req.ip;
+// app.get('*', async (req, res, next) => {
+//   const clientIP = req.ip;
+//   console.log('Client IP:', clientIP);
+//   next()
+//   // המשך עיבוד הבקשה כרגיל
+// });
+// app.post('*', async (req, res, next) => {
+//   const allowedIP = '216.24.57.4'; // כתובת ה-IP שמורשת
+//   const clientIP = req.ip;
 
-  if (clientIP !== allowedIP) {
-      return res.status(403).send("Access denied");
-  }
+//   if (clientIP !== allowedIP) {
+//       return res.status(403).send("Access denied");
+//   }
 
-  console.log('Client IP:', clientIP);
-  next();
-  // המשך עיבוד הבקשה כרגיל
-});
+//   console.log('Client IP:', clientIP);
+//   next();
+//   // המשך עיבוד הבקשה כרגיל
+// });
 
 // view engine
 app.set('view engine', 'ejs');
