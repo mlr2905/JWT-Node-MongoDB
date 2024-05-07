@@ -3,8 +3,6 @@ const { isEmail } = require('validator');
 const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
-
- 
   email: {
     type: String,
     required: [true, 'Please enter an email'],
@@ -17,10 +15,9 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Please enter a password'],
     minlength: [6, 'Minimum password length is 6 characters'],
   }
- 
-});
+}, { versionKey: false }); // Adding versionKey: false to prevent __v field addition
 
-// fire a function before doc saved to db
+// Fire a function before doc saved to db
 userSchema.pre('save', async function (next) {
   if (this.isModified('password')) {
     const salt = await bcrypt.genSalt();
@@ -29,12 +26,6 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-
-
-
-
-
-
-const User = mongoose.model('users', userSchema);
+const User = mongoose.model('User', userSchema);
 
 module.exports = User;
