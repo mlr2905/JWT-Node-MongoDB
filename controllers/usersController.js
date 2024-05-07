@@ -48,6 +48,8 @@ module.exports.signup_post = async (request, response) => {
     console.log('mongo תשובה',user);
     // const token = createToken(user._id, email);
     // response.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
+    const a = { id: user._id ,email:email,username:username} 
+    console.log('תשובה שנשלחה לשרת ממנוגו',a);
     response.status(201).json({ id: user._id ,email:email,username:username});
   }
   catch(err) {
