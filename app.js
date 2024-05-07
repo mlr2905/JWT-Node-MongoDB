@@ -18,7 +18,7 @@ app.get('*', async (req, res, next) => {
   // המשך עיבוד הבקשה כרגיל
 });
 app.post('*', async (req, res, next) => {
-  const clientIP = req.ip;
+  const clientIP = req.connection.remoteAddress
   console.log('Client IP:', clientIP);
   next()
   // המשך עיבוד הבקשה כרגיל
