@@ -11,6 +11,18 @@ const app = express();
 app.use(express.static('public'));
 app.use(express.json());
 
+app.get('*', async (req, res, next) => {
+  const clientIP = req.ip;
+  console.log('Client IP:', clientIP);
+  next()
+  // המשך עיבוד הבקשה כרגיל
+});
+app.post('*', async (req, res, next) => {
+  const clientIP = req.ip;
+  console.log('Client IP:', clientIP);
+  next()
+  // המשך עיבוד הבקשה כרגיל
+});
 
 // view engine
 app.set('view engine', 'ejs');
@@ -27,5 +39,5 @@ mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true})
   })
   .catch((err) => console.log(err));
 
-  app.use('/', usersRouter);
+  app.use('', usersRouter);
 
