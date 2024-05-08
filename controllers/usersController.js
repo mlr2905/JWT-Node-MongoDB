@@ -73,10 +73,9 @@ module.exports.login_post = async (req, res) => {
     const user = await User.find(searchQuery);
     if (user) {
     const id =user[0]._id.toString()
-    console.log(" users[0]", user[0]);
-    console.log("searchQuery",searchQuery);
-    console.log("user._id, searchQuery.email",user[0]._id, user[0].email);
-    const token = createToken(id, searchQuery.email);
+
+    console.log("id" ,id, "user[0].email", user[0].email);
+    const token = createToken(id, user[0].email);
     // res.b('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
     res.status(200).json({ id: id, jwt:token });
     }
