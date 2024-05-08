@@ -75,7 +75,7 @@ module.exports.login_post = async (req, res) => {
     const user = users[0]
     const token = createToken(user._id, searchQuery.email);
     // res.b('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-    res.status(200).json({ id: user._id, jwt:token });
+    res.status(200).json({ id: user._id.toString(), jwt:token });
     }
   } 
   catch (err) {
