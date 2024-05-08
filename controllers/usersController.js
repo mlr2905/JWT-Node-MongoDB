@@ -70,15 +70,15 @@ module.exports.login_post = async (req, res) => {
       encryptedPassword += cipher.final('hex');
       searchQuery.password = encryptedPassword;
     }
-    const users = await User.find(searchQuery);
-    if (users) {
-    const user = users[0]
-    console.log(" users[0]", users[0]);
+    const user = await User.find(searchQuery);
+    if (user) {
+    const id =user[0]._id.toString()
+    console.log(" users[0]", user[0]);
     console.log("searchQuery",searchQuery);
-    console.log("user._id, searchQuery.email",user._id.toString(), searchQuery.email);
-    const token = createToken(user._id.toString(), searchQuery.email);
+    console.log("user._id, searchQuery.email",user[0]._id, user[0].email);
+    const token = createToken(id, searchQuery.email);
     // res.b('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-    res.status(200).json({ id: user._id.toString(), jwt:token });
+    res.status(200).json({ id: id, jwt:token });
     }
   } 
   catch (err) {
