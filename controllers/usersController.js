@@ -44,8 +44,6 @@ module.exports.signup_post = async (request, response) => {
   const { email, password } = request.body;
   const username = email.substring(0, email.indexOf('@'));
 
-  //email = "itayhau@gmail.com"
-  //password = "123456"
 
   try {
     console.log('mongo email, password',email, password);
