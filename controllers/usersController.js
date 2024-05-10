@@ -70,19 +70,14 @@ module.exports.login_post = async (req, res) => {
     // Check if searching by password
     if (searchQuery.password) {
       const password = searchQuery.password;
-      const mySecretKey = '7585474'; // מפתח סודי
-      const iv = crypto.randomBytes(16); // יצירת IV רנדומלי
-      const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(mySecretKey), iv);
+      const cipher = crypto.createCipher('aes-256-cbc', 'mySecretKey');
       let encryptedPassword = cipher.update(password, 'utf8', 'hex');
-      encryptedPassword += cipher.final('hex');
-      
       encryptedPassword += cipher.final('hex');
       searchQuery.password = encryptedPassword;
     }
     const user = await User.findOne({ email: searchQuery.email });
+console.log('user',user);
     if (user === null) {
-      console.log('mail');
-
            errors.email = 'That email is not registered';
 
       return  errors
@@ -92,13 +87,7 @@ module.exports.login_post = async (req, res) => {
     } else {
       // הפונקציה crypto.pbkdf2Sync משמשת ליצירת גרסה מוצפנת של הסיסמה שהוזנה ולאחר מכן משווה אותה לסיסמה המוצפנת במסד הנתונים
       if (searchQuery.password !== user.password) {
-        console.log("סיסמה שגויה");
-
-        console.log(user.password);
-        console.log(searchQuery.password);
-
-         return errors.password = 'That password is incorrect';
-
+          console.log("סיסמה שגויה");
       } else {
           console.log("התחברות מוצלחת");
           // נוסיף כאן את הפעולות שרצוי לבצע במידה והתחברות מוצלחת
@@ -192,10 +181,8 @@ module.exports.search_users = async (req, res) => {
     // Check if searching by password
     if (searchQuery.password) {
       const password = searchQuery.password;
-      const mySecretKey = '7585474'; // מפתח סודי
-      const iv = crypto.randomBytes(16); // יצירת IV רנדומלי
-      const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(mySecretKey), iv);
-          let encryptedPassword = cipher.update(password, 'utf8', 'hex');
+      const cipher = crypto.createCipher('aes-256-cbc', 'mySecretKey');
+      let encryptedPassword = cipher.update(password, 'utf8', 'hex');
       encryptedPassword += cipher.final('hex');
       searchQuery.password = encryptedPassword;
     }
@@ -222,18 +209,14 @@ module.exports.search_users = async (req, res) => {
 module.exports.decryptPassword = async (req, res) => {
   const encryptedPassword = req.query.password
   console.log('encryptedPassword',encryptedPassword);
-  
-  const randomKey = crypto.randomBytes(32);
-  const iv = crypto.randomBytes(16); // יצירת IV רנדומלי
-    const decipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(randomKey), iv);
-    let decryptedPassword = null
-    try {
-     decryptedPassword = decipher.update(encryptedPassword, 'hex', 'utf8');
+  try {
+    const decipher = crypto.createDecipher('aes-256-cbc', 'mySecretKey');
+    let decryptedPassword = decipher.update(encryptedPassword, 'hex', 'utf8');
     decryptedPassword += decipher.final('utf8');
     res.status(200).json({ Succeeded: `This is your password: || ${decryptedPassword} ||` });
 
   } catch (err) {
-    res.status(404).json({ err: `'FALSE POSITIVE TEST': || ${decryptedPassword} ||` });
+    res.status(404).json({ err: `'FALSE POSITIVE TEST': || ${encryptedPassword} ||` });
   }
 };
 
