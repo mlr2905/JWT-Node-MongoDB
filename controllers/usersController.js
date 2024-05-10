@@ -63,6 +63,8 @@ module.exports.signup_post = async (request, response) => {
 
 module.exports.login_post = async (req, res) => {
   try {
+    let errors = { email: '', password: '' };
+
     const searchQuery = req.body;
     console.log(searchQuery);
     // Check if searching by password
@@ -74,35 +76,32 @@ module.exports.login_post = async (req, res) => {
       searchQuery.password = encryptedPassword;
     }
     const user = await User.findOne({ email: searchQuery.email });
-
+console.log('user',user);
     if (!user) {
-        console.log("מייל לא נמצא במערכת");
+           errors.email = 'That email is not registered';
+
+      return  errors
+
+
+        console.log("Email not found system");
     } else {
       // הפונקציה crypto.pbkdf2Sync משמשת ליצירת גרסה מוצפנת של הסיסמה שהוזנה ולאחר מכן משווה אותה לסיסמה המוצפנת במסד הנתונים
-     
       if (searchQuery.password !== user.password) {
           console.log("סיסמה שגויה");
       } else {
           console.log("התחברות מוצלחת");
           // נוסיף כאן את הפעולות שרצוי לבצע במידה והתחברות מוצלחת
-          const token = jwt.sign({ userId: user._id }, 'secret_key', { expiresIn: '1h' }); // יצירת טוקן JWT
-          console.log("JWT Token:", token);
+    
+          const id =user[0]._id.toString()
+          const token = createToken(id, user[0].email);
+           // res.b('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
+          res.status(200).json({ id: id, jwt:token });
       }
     }
-    console.log("xxxx",user);
 
-    if (user._id) {
-    const id =user[0]._id.toString()
-
-    const token = createToken(id, user[0].email);
-    // res.b('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-    res.status(200).json({ id: id, jwt:token });
-    }
-   
   } 
   catch (err) {
     res.cookie('jwt', '', { maxAge: 1 });
-    console.log("err",err);
     const errors = handleErrors(err);
     res.status(400).json({ errors });
   }
