@@ -79,8 +79,8 @@ module.exports.login_post = async (req, res) => {
         console.log("מייל לא נמצא במערכת");
     } else {
       // הפונקציה crypto.pbkdf2Sync משמשת ליצירת גרסה מוצפנת של הסיסמה שהוזנה ולאחר מכן משווה אותה לסיסמה המוצפנת במסד הנתונים
-      const hashedPassword = crypto.pbkdf2Sync(searchQuery.password, user.salt, 1000, 64, 'sha512').toString('hex');
-      if (hashedPassword !== user.password) {
+     
+      if (searchQuery.password !== user.password) {
           console.log("סיסמה שגויה");
       } else {
           console.log("התחברות מוצלחת");
