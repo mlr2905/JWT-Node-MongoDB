@@ -75,6 +75,7 @@ module.exports.login_post = async (req, res) => {
     }
     const user = await User.find(searchQuery);
     if (user) {
+      console.log("xxxx",user);
     const id =user[0]._id.toString()
 
     console.log("id" ,id, "user[0].email", user[0].email);
