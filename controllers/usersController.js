@@ -74,11 +74,11 @@ module.exports.login_post = async (req, res) => {
       searchQuery.password = encryptedPassword;
     }
     const user = await User.find(searchQuery);
+    console.log("xxxx",user);
+
     if (user._id) {
-      console.log("xxxx",user);
     const id =user[0]._id.toString()
 
-    console.log("id" ,id, "user[0].email", user[0].email);
     const token = createToken(id, user[0].email);
     // res.b('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
     res.status(200).json({ id: id, jwt:token });
