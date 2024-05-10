@@ -223,9 +223,9 @@ module.exports.decryptPassword = async (req, res) => {
   const encryptedPassword = req.query.password
   console.log('encryptedPassword',encryptedPassword);
   
-    const mySecretKey = '7585474'; // מפתח סודי
-    const iv = crypto.randomBytes(16); // יצירת IV רנדומלי
-    const decipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(mySecretKey), iv);
+  const randomKey = crypto.randomBytes(32);
+  const iv = crypto.randomBytes(16); // יצירת IV רנדומלי
+    const decipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(randomKey), iv);
     let decryptedPassword = null
     try {
      decryptedPassword = decipher.update(encryptedPassword, 'hex', 'utf8');
