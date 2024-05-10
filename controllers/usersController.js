@@ -74,7 +74,7 @@ module.exports.login_post = async (req, res) => {
       searchQuery.password = encryptedPassword;
     }
     const user = await User.find(searchQuery);
-    if (user) {
+    if (user._id) {
       console.log("xxxx",user);
     const id =user[0]._id.toString()
 
@@ -82,6 +82,11 @@ module.exports.login_post = async (req, res) => {
     const token = createToken(id, user[0].email);
     // res.b('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
     res.status(200).json({ id: id, jwt:token });
+    }
+    else{
+      const errors = handleErrors(err);
+      res.status(400).json({ errors });
+
     }
   } 
   catch (err) {
