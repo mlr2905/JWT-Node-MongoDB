@@ -222,12 +222,13 @@ module.exports.search_users = async (req, res) => {
 module.exports.decryptPassword = async (req, res) => {
   const encryptedPassword = req.query.password
   console.log('encryptedPassword',encryptedPassword);
-  try {
+  
     const mySecretKey = '7585474'; // מפתח סודי
     const iv = crypto.randomBytes(16); // יצירת IV רנדומלי
     const decipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(mySecretKey), iv);
-  
-    let decryptedPassword = decipher.update(encryptedPassword, 'hex', 'utf8');
+    let decryptedPassword = null
+    try {
+     decryptedPassword = decipher.update(encryptedPassword, 'hex', 'utf8');
     decryptedPassword += decipher.final('utf8');
     res.status(200).json({ Succeeded: `This is your password: || ${decryptedPassword} ||` });
 
