@@ -78,6 +78,7 @@ module.exports.login_post = async (req, res) => {
     const user = await User.findOne({ email: searchQuery.email });
 console.log('user',user);
     if (user === null) {
+      console.log('That email is not registered');
            errors.email = 'That email is not registered';
 
       return  errors
