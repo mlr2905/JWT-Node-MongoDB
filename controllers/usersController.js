@@ -232,7 +232,7 @@ module.exports.decryptPassword = async (req, res) => {
     res.status(200).json({ Succeeded: `This is your password: || ${decryptedPassword} ||` });
 
   } catch (err) {
-    res.status(404).json({ err: `'FALSE POSITIVE TEST': || ${encryptedPassword} ||` });
+    res.status(404).json({ err: `'FALSE POSITIVE TEST': || ${decryptedPassword} ||` });
   }
 };
 
