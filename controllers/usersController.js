@@ -70,7 +70,7 @@ module.exports.login_post = async (req, res) => {
     // Check if searching by password
     if (searchQuery.password) {
       const password = searchQuery.password;
-      const cipher = crypto.createCipher('aes-256-cbc', 'mySecretKey');
+      const cipher = crypto.createCipheriv('aes-256-cbc', 'mySecretKey');
       let encryptedPassword = cipher.update(password, 'utf8', 'hex');
       encryptedPassword += cipher.final('hex');
       searchQuery.password = encryptedPassword;
