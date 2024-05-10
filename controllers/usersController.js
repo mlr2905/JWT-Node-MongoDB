@@ -76,8 +76,9 @@ module.exports.login_post = async (req, res) => {
       searchQuery.password = encryptedPassword;
     }
     const user = await User.findOne({ email: searchQuery.email });
-console.log('user',user);
     if (user === null) {
+      console.log('mail');
+
            errors.email = 'That email is not registered';
 
       return  errors
@@ -88,6 +89,8 @@ console.log('user',user);
       // הפונקציה crypto.pbkdf2Sync משמשת ליצירת גרסה מוצפנת של הסיסמה שהוזנה ולאחר מכן משווה אותה לסיסמה המוצפנת במסד הנתונים
       if (searchQuery.password !== user.password) {
           console.log("סיסמה שגויה");
+         return errors.password = 'That password is incorrect';
+
       } else {
           console.log("התחברות מוצלחת");
           // נוסיף כאן את הפעולות שרצוי לבצע במידה והתחברות מוצלחת
