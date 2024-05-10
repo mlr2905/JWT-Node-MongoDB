@@ -81,7 +81,8 @@ module.exports.login_post = async (req, res) => {
       errors.email = 'That email is not registered';
       console.log(errors);
 
-      return errors
+      return   res.status(200).json(errors);
+
 
 
     } else {
