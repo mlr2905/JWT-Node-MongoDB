@@ -222,7 +222,7 @@ module.exports.search_users = async (req, res) => {
     const searchQuery = req.query;
 
     // Check if searching by password
-    const storedPassword = encryptPassword(userEnteredPassword); // הצפנת הסיסמה ושמירתה במאגר הנתונים
+    const storedPassword = encryptPassword(searchQuery.Password); // הצפנת הסיסמה ושמירתה במאגר הנתונים
 
 // אימות הסיסמה שהמשתמש הזין עם הסיסמה המצופה
 // const isPasswordCorrect = verifyPassword(userEnteredPassword, storedPassword);
@@ -236,7 +236,7 @@ module.exports.search_users = async (req, res) => {
         .map(([key, value]) => `${key}:${value}`); // Build criteria strings
       const criteriaString = searchCriteria.join(', ');
 
-      res.status(404).json({ status: `No users matching the criteria were found: ${criteriaString}` });
+      res.status(404).json({ status: `No users matching the criteria were found: ${storedPassword}` });
     }
 
   } catch (err) {
