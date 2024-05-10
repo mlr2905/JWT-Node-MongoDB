@@ -73,7 +73,19 @@ module.exports.login_post = async (req, res) => {
       encryptedPassword += cipher.final('hex');
       searchQuery.password = encryptedPassword;
     }
-    const user = await User.find(searchQuery);
+    const user = await User.findOne({ email: searchQuery.email });
+
+    if (!user) {
+        console.log("מייל לא נמצא במערכת");
+    } else {
+        const isPasswordMatch = await bcrypt.compare(searchQuery.password, user.password);
+        if (!isPasswordMatch) {
+            console.log("סיסמה שגויה");
+        } else {
+            console.log("התחברות מוצלחת");
+            // נוסיף כאן את הפעולות שרצוי לבצע במידה והתחברות מוצלחת
+        }
+    }
     console.log("xxxx",user);
 
     if (user._id) {
