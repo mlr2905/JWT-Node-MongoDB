@@ -35,9 +35,9 @@ const handleErrors = (err) => {
 // create json web token
 const maxAge = 3 * 24 * 60 * 60;
 const createToken = (id, email) => {
-    return jwt.sign({ id, email }, 'secret key', {
-        expiresIn: maxAge
-    });
+  return jwt.sign({ id, email }, 'secret key', {
+    expiresIn: maxAge
+  });
 };
 
 module.exports.signup_post = async (request, response) => {
@@ -46,16 +46,16 @@ module.exports.signup_post = async (request, response) => {
 
 
   try {
-    console.log('mongo email, password',email, password);
+    console.log('mongo email, password', email, password);
     const user = await User.create({ email, password });
-    console.log('mongo תשובה',user);
+    console.log('mongo תשובה', user);
     // const token = createToken(user._id, email);
     // response.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-    const a = {username:username, email:email,mongo_id: user._id.toString()} 
-    console.log('תשובה שנשלחה לשרת ממנוגו',a);
-    response.status(201).json({username:username, email:email,mongo_id: user._id.toString()});
+    const a = { username: username, email: email, mongo_id: user._id.toString() }
+    console.log('תשובה שנשלחה לשרת ממנוגו', a);
+    response.status(201).json({ username: username, email: email, mongo_id: user._id.toString() });
   }
-  catch(err) {
+  catch (err) {
     const errors = handleErrors(err);
     response.status(400).json({ errors });
   }
@@ -76,29 +76,29 @@ module.exports.login_post = async (req, res) => {
       searchQuery.password = encryptedPassword;
     }
     const user = await User.findOne({ email: searchQuery.email });
-console.log('user',user);
+    console.log('user', user);
     if (user === null) {
-      console.log('That email is not registered');
-           errors.email = 'That email is not registered';
+      errors.email = 'That email is not registered';
+      console.log(errors);
 
-      return  errors
+      return errors
 
 
     } else {
       // הפונקציה crypto.pbkdf2Sync משמשת ליצירת גרסה מוצפנת של הסיסמה שהוזנה ולאחר מכן משווה אותה לסיסמה המוצפנת במסד הנתונים
       if (searchQuery.password !== user.password) {
-          console.log("סיסמה שגויה");
+        console.log("סיסמה שגויה");
       } else {
-          console.log("התחברות מוצלחת");
-          // נוסיף כאן את הפעולות שרצוי לבצע במידה והתחברות מוצלחת
-    
-          const id =user[0]._id.toString()
-          const token = createToken(id, user[0].email);
-          res.status(200).json({ id: id, jwt:token });
+        console.log("התחברות מוצלחת");
+        // נוסיף כאן את הפעולות שרצוי לבצע במידה והתחברות מוצלחת
+
+        const id = user[0]._id.toString()
+        const token = createToken(id, user[0].email);
+        res.status(200).json({ id: id, jwt: token });
       }
     }
 
-  } 
+  }
   catch (err) {
     res.cookie('jwt', '', { maxAge: 1 });
     const errors = handleErrors(err);
@@ -108,36 +108,36 @@ console.log('user',user);
 
 module.exports.logout_get = (req, res) => {
   res.cookie('jwt', '', { maxAge: 1 });
-  res.status(200).json({ status: "logged out"});
+  res.status(200).json({ status: "logged out" });
 }
 
-module.exports.validate_token  = (req, res) => {
+module.exports.validate_token = (req, res) => {
   console.log(req.body);
   const token = req.body.token; // Assuming the token is sent in the body of the request
-  console.log('token',token);
+  console.log('token', token);
 
-    if (!token) {
-        console.log('401');
-        res.status(401).json({"status": "no jwt present"})
-        return;
+  if (!token) {
+    console.log('401');
+    res.status(401).json({ "status": "no jwt present" })
+    return;
+  }
+  console.log(token);
+  jwt.verify(token, 'secret key', async (err, decodedToken) => {
+    if (err) {
+      console.log('402');
+      res.status(401).json({ "status": "token not valid!" })
+      return;
+    } else {
+      // valid token
+      // check if this user is still in the db
+      let user = await User.findById(decodedToken.id);
+      console.log('200');
+      res.status(200).json({ valid: "token valid" });
+      return;
     }
-    console.log(token);
-    jwt.verify(token, 'secret key', async (err, decodedToken) => {
-        if (err) {
-            console.log('402');
-            res.status(401).json({"status": "token not valid!"})
-            return;
-        } else {
-            // valid token
-            // check if this user is still in the db
-          let user = await User.findById(decodedToken.id);
-          console.log('200');
-          res.status(200).json({ valid: "token valid"});
-          return;
-        }
-      });
-    //   res.status(401).json({"status": "token not valid!"})
-    //   return;
+  });
+  //   res.status(401).json({"status": "token not valid!"})
+  //   return;
 }
 
 module.exports.search_users = async (req, res) => {
@@ -172,7 +172,7 @@ module.exports.search_users = async (req, res) => {
 
 module.exports.decryptPassword = async (req, res) => {
   const encryptedPassword = req.query.password
-  console.log('encryptedPassword',encryptedPassword);
+  console.log('encryptedPassword', encryptedPassword);
   try {
     const decipher = crypto.createDecipher('aes-256-cbc', 'mySecretKey');
     let decryptedPassword = decipher.update(encryptedPassword, 'hex', 'utf8');
