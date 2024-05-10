@@ -222,15 +222,12 @@ module.exports.search_users = async (req, res) => {
     const searchQuery = req.query;
 
     // Check if searching by password
-    if (searchQuery.password) {
-      const password = searchQuery.password;
-      const cipher = crypto.createCipher('aes-256-cbc', 'mySecretKey');
-      let encryptedPassword = cipher.update(password, 'utf8', 'hex');
-      encryptedPassword += cipher.final('hex');
-      searchQuery.password = encryptedPassword;
-    }
+    const storedPassword = encryptPassword(userEnteredPassword); // הצפנת הסיסמה ושמירתה במאגר הנתונים
 
-    const users = await User.find(searchQuery);
+// אימות הסיסמה שהמשתמש הזין עם הסיסמה המצופה
+// const isPasswordCorrect = verifyPassword(userEnteredPassword, storedPassword);
+
+    const users = await User.find(storedPassword);
     if (users[0]) {
       res.status(200).json(users[0]); // Assuming you only want the first user
     } else {
