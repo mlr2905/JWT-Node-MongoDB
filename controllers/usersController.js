@@ -78,13 +78,16 @@ module.exports.login_post = async (req, res) => {
     if (!user) {
         console.log("מייל לא נמצא במערכת");
     } else {
-        const isPasswordMatch = await bcrypt.compare(searchQuery.password, user.password);
-        if (!isPasswordMatch) {
-            console.log("סיסמה שגויה");
-        } else {
-            console.log("התחברות מוצלחת");
-            // נוסיף כאן את הפעולות שרצוי לבצע במידה והתחברות מוצלחת
-        }
+      // הפונקציה crypto.pbkdf2Sync משמשת ליצירת גרסה מוצפנת של הסיסמה שהוזנה ולאחר מכן משווה אותה לסיסמה המוצפנת במסד הנתונים
+      const hashedPassword = crypto.pbkdf2Sync(searchQuery.password, user.salt, 1000, 64, 'sha512').toString('hex');
+      if (hashedPassword !== user.password) {
+          console.log("סיסמה שגויה");
+      } else {
+          console.log("התחברות מוצלחת");
+          // נוסיף כאן את הפעולות שרצוי לבצע במידה והתחברות מוצלחת
+          const token = jwt.sign({ userId: user._id }, 'secret_key', { expiresIn: '1h' }); // יצירת טוקן JWT
+          console.log("JWT Token:", token);
+      }
     }
     console.log("xxxx",user);
 
