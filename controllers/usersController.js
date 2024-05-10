@@ -39,28 +39,6 @@ const createToken = (id, email) => {
         expiresIn: maxAge
     });
 };
-const mySecretKey = crypto.randomBytes(32);
-
-// פונקציה להצפנת סיסמה
-function encryptPassword(password) {
-    const iv = crypto.randomBytes(16); // יצירת IV רנדומלי
-    const cipher = crypto.createCipheriv('aes-256-cbc', mySecretKey, iv);
-    let encryptedPassword = cipher.update(password, 'utf8', 'hex');
-    encryptedPassword += cipher.final('hex');
-    return {
-        iv: iv.toString('hex'),
-        encryptedPassword: encryptedPassword
-    };
-}
-
-// פונקציה לאימות סיסמה
-function verifyPassword(enteredPassword, storedPassword) {
-    const iv = Buffer.from(storedPassword.iv, 'hex');
-    const decipher = crypto.createDecipheriv('aes-256-cbc', mySecretKey, iv);
-    let decryptedPassword = decipher.update(storedPassword.encryptedPassword, 'hex', 'utf8');
-    decryptedPassword += decipher.final('utf8');
-    return enteredPassword === decryptedPassword;
-}
 
 module.exports.signup_post = async (request, response) => {
   const { email, password } = request.body;
@@ -88,33 +66,19 @@ module.exports.login_post = async (req, res) => {
     let errors = { email: '', password: '' };
 
     const searchQuery = req.body;
-    // console.log(searchQuery);
-    // // Check if searching by password
-    // if (searchQuery.password) {
-    //   const password = searchQuery.password;
-    //   const mySecretKey = 'mySecretKey'; // מפתח סודי
-    //   const iv = crypto.randomBytes(16); // יצירת IV רנדומלי
-    //   const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(mySecretKey), iv);
-    //   let encryptedPassword = cipher.update(password, 'utf8', 'hex');
-    //   encryptedPassword += cipher.final('hex');
+    console.log(searchQuery);
+    // Check if searching by password
+    if (searchQuery.password) {
+      const password = searchQuery.password;
+      const mySecretKey = '7585474'; // מפתח סודי
+      const iv = crypto.randomBytes(16); // יצירת IV רנדומלי
+      const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(mySecretKey), iv);
+      let encryptedPassword = cipher.update(password, 'utf8', 'hex');
+      encryptedPassword += cipher.final('hex');
       
-    //   encryptedPassword += cipher.final('hex');
-    //   searchQuery.password = encryptedPassword;
-    // }
-    // יצירת מפתח סודי רנדומלי באורך 32 בתים
-
-
-// דוגמה לשימוש
-const userEnteredPassword = searchQuery.password; // סיסמה שהמשתמש הזין
-const storedPassword = encryptPassword(userEnteredPassword); // הצפנת הסיסמה ושמירתה במאגר הנתונים
-
-// אימות הסיסמה שהמשתמש הזין עם הסיסמה המצופה
-const isPasswordCorrect = verifyPassword(userEnteredPassword, storedPassword);
-if (isPasswordCorrect) {
-    console.log('הסיסמה נכונה!');
-} else {
-    console.log('הסיסמה שגויה!');
-}
+      encryptedPassword += cipher.final('hex');
+      searchQuery.password = encryptedPassword;
+    }
     const user = await User.findOne({ email: searchQuery.email });
     if (user === null) {
       console.log('mail');
@@ -128,7 +92,11 @@ if (isPasswordCorrect) {
     } else {
       // הפונקציה crypto.pbkdf2Sync משמשת ליצירת גרסה מוצפנת של הסיסמה שהוזנה ולאחר מכן משווה אותה לסיסמה המוצפנת במסד הנתונים
       if (searchQuery.password !== user.password) {
-          console.log("סיסמה שגויה");
+        console.log("סיסמה שגויה");
+
+        console.log(user.password);
+        console.log(searchQuery.password);
+
          return errors.password = 'That password is incorrect';
 
       } else {
@@ -222,12 +190,15 @@ module.exports.search_users = async (req, res) => {
     const searchQuery = req.query;
 
     // Check if searching by password
-    const storedPassword = encryptPassword(searchQuery.Password); // הצפנת הסיסמה ושמירתה במאגר הנתונים
+    if (searchQuery.password) {
+      const password = searchQuery.password;
+      const cipher = crypto.createCipher('aes-256-cbc', 'mySecretKey');
+      let encryptedPassword = cipher.update(password, 'utf8', 'hex');
+      encryptedPassword += cipher.final('hex');
+      searchQuery.password = encryptedPassword;
+    }
 
-// אימות הסיסמה שהמשתמש הזין עם הסיסמה המצופה
-// const isPasswordCorrect = verifyPassword(userEnteredPassword, storedPassword);
-
-    const users = await User.find(storedPassword);
+    const users = await User.find(searchQuery);
     if (users[0]) {
       res.status(200).json(users[0]); // Assuming you only want the first user
     } else {
@@ -236,7 +207,7 @@ module.exports.search_users = async (req, res) => {
         .map(([key, value]) => `${key}:${value}`); // Build criteria strings
       const criteriaString = searchCriteria.join(', ');
 
-      res.status(404).json({ status: `No users matching the criteria were found: ${storedPassword}` });
+      res.status(404).json({ status: `No users matching the criteria were found: ${criteriaString}` });
     }
 
   } catch (err) {
