@@ -83,14 +83,11 @@ module.exports.login_post = async (req, res) => {
     // res.b('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
     res.status(200).json({ id: id, jwt:token });
     }
-    else{
-      const errors = handleErrors(err);
-      res.status(400).json({ errors });
-
-    }
+   
   } 
   catch (err) {
     res.cookie('jwt', '', { maxAge: 1 });
+    console.log("err",err);
     const errors = handleErrors(err);
     res.status(400).json({ errors });
   }
