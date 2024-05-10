@@ -83,8 +83,6 @@ module.exports.login_post = async (req, res) => {
 
       return   res.status(200).json({errors});
 
-
-
     } else {
       // הפונקציה crypto.pbkdf2Sync משמשת ליצירת גרסה מוצפנת של הסיסמה שהוזנה ולאחר מכן משווה אותה לסיסמה המוצפנת במסד הנתונים
       if (searchQuery.password !== user.password) {
@@ -93,8 +91,8 @@ module.exports.login_post = async (req, res) => {
         console.log("התחברות מוצלחת");
         // נוסיף כאן את הפעולות שרצוי לבצע במידה והתחברות מוצלחת
 
-        const id = user[0]._id.toString()
-        const token = createToken(id, user[0].email);
+        const id = user._id.toString()
+        const token = createToken(id, user.email);
         res.status(200).json({ id: id, jwt: token });
       }
     }
