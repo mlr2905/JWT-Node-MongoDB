@@ -93,7 +93,7 @@ module.exports.login_post = async (req, res) => {
 
         const id = user._id.toString()
         const token = createToken(id, user.email);
-        res.status(200).json({ id: id, jwt: token });
+        res.status(200).json({ jwt: token });
       }
     }
 
