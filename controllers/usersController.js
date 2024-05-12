@@ -3,14 +3,13 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 
-// פונקציה לשליחת אימייל
 function sendEmail(to, subject, text) {
   // הגדרת הגישה לחשבון ה-Gmail שלך
   const transporter = nodemailer.createTransport({
-  service: "Gmail",
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true, // חשוב להגדיר secure: true בשביל גישה מאובטחת לשרת SMTP של Gmail
     auth: {
       user: 'skyrocket.ask@gmail.com',
       pass: 'Miki260623'
@@ -34,6 +33,8 @@ function sendEmail(to, subject, text) {
     }
   });
 }
+
+
 
 // handle errors
 const handleErrors = (err) => {
@@ -81,14 +82,8 @@ module.exports.signup_post = async (request, response) => {
   try {
     console.log('mongo email, password', email, password);
     const user = await User.create({ email, password });
-    console.log('mongo תשובה', user);
-    // const token = createToken(user._id, email);
-    // response.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
-    const a = { username: username, email: email, mongo_id: user._id.toString() }
-    mailOptions.to=email
-    mailOptions.subject= 'The list was made successfully',
-    mailOptions.text= `Welcome to the site, this is your password, please save it:${password}.`
-    sendEmail(mailOptions);
+    
+     sendEmail(email, 'The list was made successfully', `Welcome to the site, this is your password, please save it: ${password}.`);
 
     response.status(201).json({ username: username, email: email, mongo_id: user._id.toString() });
   }
