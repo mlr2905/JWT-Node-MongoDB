@@ -99,8 +99,13 @@ module.exports.signup_post = async (request, response) => {
     const mailOptions = {
       from: 'skyrocket.ask@gmail.com',
       to: email,
-      subject: 'The list was made successfully',
-      text: `We are glad that you chose to register on our website, that your password: ${password} will be kept.`
+      subject: 'Successful registration - welcome to our website',
+      text: `"We are delighted you chose to sign up for our website!
+       We look forward to seeing you soon and providing you access to all our exciting services and content. 
+       Please keep your password:${password} safe and don't forget to check the homepage for updates!
+
+      Best regards,
+      The Skyrocket Team"  will be kept.`
     };
 
     // שליחת האימייל
