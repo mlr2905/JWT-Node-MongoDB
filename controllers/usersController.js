@@ -32,10 +32,12 @@ const handleErrors = (err) => {
   return errors;
 }
 
+
+
 // create json web token
 const maxAge = 3 * 24 * 60 * 60;
 const createToken = (id, email) => {
-  return jwt.sign({ id, email }, 'secret key', {
+  return jwt.sign({ id, email}, 'secret key', {
     expiresIn: maxAge
   });
 };
