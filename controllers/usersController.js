@@ -8,8 +8,8 @@ function sendEmail(to, subject, text) {
   const transporter = nodemailer.createTransport({
     service: "gmail",
     host: "smtp.gmail.com",
-    port: 465,
-    secure: true, // חשוב להגדיר secure: true בשביל גישה מאובטחת לשרת SMTP של Gmail
+    port: 587,
+    secure: false, // חשוב להגדיר secure: true בשביל גישה מאובטחת לשרת SMTP של Gmail
     auth: {
       user: 'skyrocket.ask@gmail.com',
       pass: 'Miki260623'
@@ -82,7 +82,7 @@ module.exports.signup_post = async (request, response) => {
   try {
     console.log('mongo email, password', email, password);
     const user = await User.create({ email, password });
-    
+
      sendEmail(email, 'The list was made successfully', `Welcome to the site, this is your password, please save it: ${password}.`);
 
     response.status(201).json({ username: username, email: email, mongo_id: user._id.toString() });
