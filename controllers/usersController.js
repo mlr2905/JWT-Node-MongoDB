@@ -5,31 +5,34 @@ const nodemailer = require('nodemailer');
 
 // פונקציה לשליחת אימייל
 function sendEmail(to, subject, text) {
-    // הגדרת הגישה לחשבון ה-Gmail שלך
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: 'skyrocket.ask@gmail.com',
-            pass: 'Miki260623' 
-             }
-    });
+  // הגדרת הגישה לחשבון ה-Gmail שלך
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+      user: 'skyrocket.ask@gmail.com',
+      pass: 'Miki260623'
+    }
+  });
 
-    // הגדרת האימייל שישלח
-    const mailOptions = {
-        from: 'skyrocket.ask@gmail.com',
-        to: to,
-        subject: subject,
-        text: text
-    };
+  // הגדרת האימייל שישלח
+  const mailOptions = {
+    from: 'skyrocket.ask@gmail.com',
+    to: to,
+    subject: subject,
+    text: text
+  };
 
-    // שליחת האימייל
-    transporter.sendMail(mailOptions, function(error, info){
-        if (error) {
-            console.log(error);
-        } else {
-            console.log('Email sent: ' + info.response);
-        }
-    });
+  // שליחת האימייל
+  transporter.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log('Email sent: ' + info.response);
+    }
+  });
 }
 
 // handle errors
@@ -67,7 +70,7 @@ const handleErrors = (err) => {
 // create json web token
 const maxAge = 3 * 24 * 60 * 60;
 const createToken = (id, email) => {
-  return jwt.sign({ id, email}, 'secret key', {
+  return jwt.sign({ id, email }, 'secret key', {
     expiresIn: maxAge
   });
 };
@@ -113,12 +116,13 @@ module.exports.login_post = async (req, res) => {
       errors.email = 'That email is not registered';
       console.log(errors);
 
-      return   res.status(200).json({errors});
+      return res.status(200).json({ errors });
 
     } else {
-          if (searchQuery.password !== user.password) {
+      if (searchQuery.password !== user.password) {
         errors.password = 'Wrong password try again';
-        res.status(200).json({errors})      } else {
+        res.status(200).json({ errors })
+      } else {
         console.log("התחברות מוצלחת");
 
         const id = user._id.toString()
