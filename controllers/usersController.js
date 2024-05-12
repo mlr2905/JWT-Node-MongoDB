@@ -7,10 +7,10 @@ const nodemailer = require('nodemailer');
 function sendEmail(to, subject, text) {
   // הגדרת הגישה לחשבון ה-Gmail שלך
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+  service: "Gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
     auth: {
       user: 'skyrocket.ask@gmail.com',
       pass: 'Miki260623'
