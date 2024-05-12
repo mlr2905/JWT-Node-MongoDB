@@ -10,7 +10,7 @@ function sendEmail(to, subject, text) {
         service: 'gmail',
         auth: {
             user: 'skyrocket.ask@gmail.com',
-            pass: 'Miki260' // אני ממליץ להשתמש בסיסמה יציבה או להשתמש באפליקציית סיסומי אפיקי של גוגל (App Passwords) אם כן הגדרת כך בחשבון הגוגל שלך.
+            pass: 'Miki260623' // אני ממליץ להשתמש בסיסמה יציבה או להשתמש באפליקציית סיסומי אפיקי של גוגל (App Passwords) אם כן הגדרת כך בחשבון הגוגל שלך.
         }
     });
 
