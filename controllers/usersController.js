@@ -88,7 +88,9 @@ module.exports.login_post = async (req, res) => {
     } else {
       // הפונקציה crypto.pbkdf2Sync משמשת ליצירת גרסה מוצפנת של הסיסמה שהוזנה ולאחר מכן משווה אותה לסיסמה המוצפנת במסד הנתונים
       if (searchQuery.password !== user.password) {
-        console.log("סיסמה שגויה");
+        console.log("Wrong password try again");
+        errors.email = 'That email is not registered';
+        console.log(errors);
       } else {
         console.log("התחברות מוצלחת");
         // נוסיף כאן את הפעולות שרצוי לבצע במידה והתחברות מוצלחת
