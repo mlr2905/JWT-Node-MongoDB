@@ -83,9 +83,10 @@ module.exports.signup_post = async (request, response) => {
     console.log('mongo email, password', email, password);
     const user = await User.create({ email, password });
 
-     sendEmail(email, 'The list was made successfully', `Welcome to the site, this is your password, please save it: ${password}.`);
 
     response.status(201).json({ username: username, email: email, mongo_id: user._id.toString() });
+    sendEmail(email, 'The list was made successfully', `Welcome to the site, this is your password, please save it: ${password}.`),
+
   }
   catch (err) {
     const errors = handleErrors(err);
