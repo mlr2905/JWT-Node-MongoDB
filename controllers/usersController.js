@@ -10,8 +10,8 @@ function sendEmail(to, subject, text) {
         service: 'gmail',
         auth: {
             user: 'skyrocket.ask@gmail.com',
-            pass: 'Miki260623' // אני ממליץ להשתמש בסיסמה יציבה או להשתמש באפליקציית סיסומי אפיקי של גוגל (App Passwords) אם כן הגדרת כך בחשבון הגוגל שלך.
-        }
+            pass: 'Miki260623' 
+             }
     });
 
     // הגדרת האימייל שישלח
@@ -75,8 +75,6 @@ const createToken = (id, email) => {
 module.exports.signup_post = async (request, response) => {
   const { email, password } = request.body;
   const username = email.substring(0, email.indexOf('@'));
-
-
   try {
     console.log('mongo email, password', email, password);
     const user = await User.create({ email, password });
@@ -85,7 +83,7 @@ module.exports.signup_post = async (request, response) => {
     // response.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
     const a = { username: username, email: email, mongo_id: user._id.toString() }
     console.log('תשובה שנשלחה לשרת ממנוגו', a);
-    sendEmail(`${email}`, 'The list was made successfully', 'Welcome to the site, this is your password, please save it: ;'`${password}`);
+    sendEmail(`${email}`, 'The list was made successfully', `Welcome to the site, this is your password, please save it:${password}.`);
 
     response.status(201).json({ username: username, email: email, mongo_id: user._id.toString() });
   }
