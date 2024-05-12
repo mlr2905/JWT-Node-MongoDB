@@ -12,7 +12,7 @@ function sendEmail(to, subject, text) {
     secure: false, // חשוב להגדיר secure: true בשביל גישה מאובטחת לשרת SMTP של Gmail
     auth: {
       user: 'skyrocket.ask@gmail.com',
-      pass: 'Miki260623'
+      pass: 'akvrvcwrdtaoeyow'
     }
   });
 
