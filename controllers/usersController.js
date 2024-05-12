@@ -3,36 +3,36 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 
-function sendEmail(to, subject, text) {
-  // הגדרת הגישה לחשבון ה-Gmail שלך
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false, // חשוב להגדיר secure: true בשביל גישה מאובטחת לשרת SMTP של Gmail
-    auth: {
-      user: 'skyrocket.ask@gmail.com',
-      pass: 'akvrvcwrdtaoeyow'
-    }
-  });
+// function sendEmail(to, subject, text) {
+//   // הגדרת הגישה לחשבון ה-Gmail שלך
+//   const transporter = nodemailer.createTransport({
+//     service: "gmail",
+//     host: "smtp.gmail.com",
+//     port: 587,
+//     secure: false, // חשוב להגדיר secure: true בשביל גישה מאובטחת לשרת SMTP של Gmail
+//     auth: {
+//       user: 'skyrocket.ask@gmail.com',
+//       pass: 'akvrvcwrdtaoeyow'
+//     }
+//   });
 
-  // הגדרת האימייל שישלח
-  const mailOptions = {
-    from: 'skyrocket.ask@gmail.com',
-    to: to,
-    subject: subject,
-    text: text
-  };
+//   // הגדרת האימייל שישלח
+//   const mailOptions = {
+//     from: 'skyrocket.ask@gmail.com',
+//     to: to,
+//     subject: subject,
+//     text: text
+//   };
 
-  // שליחת האימייל
-  transporter.sendMail(mailOptions, function (error, info) {
-    if (error) {
-      console.log(error);
-    } else {
-      console.log('Email sent: ' + info.response);
-    }
-  });
-}
+//   // שליחת האימייל
+//   transporter.sendMail(mailOptions, function (error, info) {
+//     if (error) {
+//       console.log(error);
+//     } else {
+//       console.log('Email sent: ' + info.response);
+//     }
+//   });
+// }
 
 
 
@@ -83,16 +83,43 @@ module.exports.signup_post = async (request, response) => {
     console.log('mongo email, password', email, password);
     const user = await User.create({ email, password });
 
+    // הגדרת הגישה לחשבון ה-Gmail שלך
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      auth: {
+        user: 'skyrocket.ask@gmail.com',
+        pass: 'akvrvcwrdtaoeyow'
+      }
+    });
+
+    // הגדרת האימייל שישלח
+    const mailOptions = {
+      from: 'skyrocket.ask@gmail.com',
+      to: email,
+      subject: 'The list was made successfully',
+      text: `We are glad that you chose to register on our website, that your password: ${password} will be kept.`
+    };
+
+    // שליחת האימייל
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log('Email sent: ' + info.response);
+      }
+    });
 
     response.status(201).json({ username: username, email: email, mongo_id: user._id.toString() });
-    sendEmail(email, 'The list was made successfully', `Welcome to the site, this is your password, please save it: ${password}.`),
-
   }
   catch (err) {
     const errors = handleErrors(err);
     response.status(400).json({ errors });
   }
 }
+
 
 module.exports.login_post = async (req, res) => {
   try {
