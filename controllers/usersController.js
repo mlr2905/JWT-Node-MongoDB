@@ -1,6 +1,36 @@
 const User = require("../models/User");
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+
+// פונקציה לשליחת אימייל
+function sendEmail(to, subject, text) {
+    // הגדרת הגישה לחשבון ה-Gmail שלך
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'skyrocket.ask@gmail.com',
+            pass: 'Miki260' // אני ממליץ להשתמש בסיסמה יציבה או להשתמש באפליקציית סיסומי אפיקי של גוגל (App Passwords) אם כן הגדרת כך בחשבון הגוגל שלך.
+        }
+    });
+
+    // הגדרת האימייל שישלח
+    const mailOptions = {
+        from: 'skyrocket.ask@gmail.com',
+        to: to,
+        subject: subject,
+        text: text
+    };
+
+    // שליחת האימייל
+    transporter.sendMail(mailOptions, function(error, info){
+        if (error) {
+            console.log(error);
+        } else {
+            console.log('Email sent: ' + info.response);
+        }
+    });
+}
 
 // handle errors
 const handleErrors = (err) => {
@@ -55,6 +85,8 @@ module.exports.signup_post = async (request, response) => {
     // response.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
     const a = { username: username, email: email, mongo_id: user._id.toString() }
     console.log('תשובה שנשלחה לשרת ממנוגו', a);
+    sendEmail(`${email}`, 'The list was made successfully', 'Welcome to the site, this is your password, please save it: ;'`${password}`);
+
     response.status(201).json({ username: username, email: email, mongo_id: user._id.toString() });
   }
   catch (err) {
