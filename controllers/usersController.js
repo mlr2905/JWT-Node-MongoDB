@@ -146,7 +146,7 @@ module.exports.search_users = async (req, res) => {
     // Check if searching by password
     if (searchQuery.password) {
       const password = searchQuery.password;
-      const cipher = crypto.createCipher('aes-256-cbc', 'mySecretKey');
+      const cipher = crypto.createCipher('aes-256-cbc', '7585474');
       let encryptedPassword = cipher.update(password, 'utf8', 'hex');
       encryptedPassword += cipher.final('hex');
       searchQuery.password = encryptedPassword;
