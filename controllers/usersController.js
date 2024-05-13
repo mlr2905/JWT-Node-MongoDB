@@ -77,11 +77,12 @@ const createToken = (id, email) => {
 };
 
 module.exports.signup_post = async (request, response) => {
-  const { email, password } = request.body;
+  const searchQuery = req.body;
+  const email = searchQuery.email
   const cipher = crypto.createCipher('aes-256-cbc', 'ml7585474rl');
-  let encryptedPassword = cipher.update(password, 'utf8', 'hex');
+  let encryptedPassword = cipher.update(searchQuery.password, 'utf8', 'hex');
   encryptedPassword += cipher.final('hex');
-  password = encryptedPassword;
+  const password = encryptedPassword;
   const username = email.substring(0, email.indexOf('@'));
   try {
     console.log('mongo email, password', email, password);
