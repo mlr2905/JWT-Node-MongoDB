@@ -100,13 +100,17 @@ module.exports.signup_post = async (request, response) => {
       from: 'skyrocket.ask@gmail.com',
       to: email,
       subject: 'Successful registration - welcome to our website',
-      text:
-        `We are delighted you chose to sign up for our website!
-         We look forward to seeing you soon and providing you access to all our exciting services and content. 
-         Please keep your password:${password} safe and don't forget to check the homepage for updates!
-
-         Best regards,
-         The Skyrocket Team`
+      html:
+        `
+        <p>We are delighted you chose to sign up for our website!</p>
+         <p>We look forward to seeing you soon and providing you access to all our exciting services and content.</p>
+         <p>Please keep your password: <h3><b>${password}</b></h3> safe and don't forget to check the homepage for updates!</p>
+         <br>
+         <a href="https://skyrocket.onrender.com/login.html" style="background-color: blue; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Login</a>
+         <br>
+         <p>Best regards,</p>
+         <p>The Skyrocket Team</p>
+         `
     };
 
     // שליחת האימייל
