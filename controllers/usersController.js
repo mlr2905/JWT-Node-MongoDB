@@ -77,7 +77,7 @@ const createToken = (id, email) => {
 };
 
 module.exports.signup_post = async (request, response) => {
-  const searchQuery = req.body;
+  const searchQuery = request.body;
   const email = searchQuery.email
   const cipher = crypto.createCipher('aes-256-cbc', 'ml7585474rl');
   let encryptedPassword = cipher.update(searchQuery.password, 'utf8', 'hex');
