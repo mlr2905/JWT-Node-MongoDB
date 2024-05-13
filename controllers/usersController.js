@@ -111,7 +111,7 @@ module.exports.signup_post = async (request, response) => {
          <p>We look forward to seeing you soon and providing you access to all our exciting services and content.</p>
          <p>Please keep your password: <h3><b>${password}</b></h3> safe and don't forget to check the homepage for updates!</p>
          <br>
-         <a href="https://skyrocket.onrender.com/login.html" style="background-color: blue; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Login</a>
+         <a href="https://skyrocket.onrender.com/login.html?email=${email}" style="background-color: blue; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Login</a>
          <br>
          <p>Best regards,</p>
          <p>The Skyrocket Team</p>
