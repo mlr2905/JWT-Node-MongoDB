@@ -132,7 +132,7 @@ console.log('inputCode',inputCode);
           errors.email = 'That email is not registered';
           console.log(errors);
 
-          return res.status(200).json({ errors });
+          return res.status(404).json({ errors });
 
         } else {
           console.log('The code is correct!');
@@ -142,7 +142,7 @@ console.log('inputCode',inputCode);
           res.status(200).json({ jwt: token, "code": "The code is correct!" });
         }
       } else {
-        response.status(201).json({ "error": "The code is incorrect. Try again." });
+        response.status(404).json({ "error": "The code is incorrect. Try again." });
         console.log('The code is incorrect. Try again.');
       }
     } else {
