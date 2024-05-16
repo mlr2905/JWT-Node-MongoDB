@@ -141,17 +141,17 @@ module.exports.verifyCode = async (request, response) => {
           console.log('The code is correct!');
           delete temporaryVerificationCodes[email];
           console.log({ "token": token, "code": "The code is correct!" });
-          return  response.status(200).json({ "token": token, "code": "The code is correct!" });
+          return  response.status(200).json(errors,{ "token": token, "code": "The code is correct!" });
         
         }
       } else {
         console.log('The code is incorrect. Try again.');
 
-       return response.status(404).json({ "error": "The code is incorrect. Try again." });
+       return response.status(404).json({ "errors": "The code is incorrect. Try again." });
       }
     } else {
       console.log({ "error": 'No verification code found for the email entered.' });
-      return response.status(404).json({ "error": 'No verification code found for the email entered.' });
+      return response.status(404).json({ "errors": 'No verification code found for the email entered.' });
 
     }
 
