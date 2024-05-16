@@ -128,10 +128,10 @@ module.exports.verifyCode = async (request, response) => {
       const storedCode = temporaryVerificationCodes[email];
 console.log('storedCode',storedCode);
 console.log('inputCode',inputCode);
-
+console.log(inputCode === storedCode);
       if (inputCode === storedCode) {
 
-        const user = await User.findOne({ email: searchQuery.email });
+        const user = await User.findOne({ email: email });
         console.log("mm",user);
         if (user === null) {
           errors.email = 'That email is not registered';
