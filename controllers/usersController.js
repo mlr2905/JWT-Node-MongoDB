@@ -121,6 +121,8 @@ module.exports.verifyCode = async (request, response) => {
     // פונקציה לאימות ומחיקת קוד האימות
     if (temporaryVerificationCodes.hasOwnProperty(email)) {
       const storedCode = temporaryVerificationCodes[email];
+console.log('storedCode',storedCode);
+console.log('inputCode',inputCode);
 
       if (inputCode === storedCode) {
 
