@@ -101,11 +101,11 @@ module.exports.authcode = async (request, response) => {
           delete temporaryVerificationCodes[email];
           console.log(`The verification code for ${email} has been deleted.`);
         }, 5 * 60 * 1000); // זמן במילישניות - 5 דקות
-    
+
         response.status(201).json({ "code": "The code has been sent successfully" });
       }
     });
-   
+
   }
   catch (err) {
     response.status(400).json({ "error": err });
@@ -123,10 +123,6 @@ module.exports.verifyCode = async (request, response) => {
       const storedCode = temporaryVerificationCodes[email];
 
       if (inputCode === storedCode) {
-        response.status(201).json({ "code": "The code is correct!" });
-
-        console.log('The code is correct!');
-        delete temporaryVerificationCodes[email];
 
         const user = await User.findOne({ email: searchQuery.email });
         console.log('user', user);
@@ -137,10 +133,12 @@ module.exports.verifyCode = async (request, response) => {
           return res.status(200).json({ errors });
 
         } else {
-          console.log("התחברות מוצלחת");
+
+          console.log('The code is correct!');
+          delete temporaryVerificationCodes[email];
           const id = user._id.toString()
           const token = createToken(id, user.email);
-          res.status(200).json({ jwt: token });
+          res.status(200).json({ jwt: token, "code": "The code is correct!" });
         }
       } else {
         response.status(201).json({ "error": "The code is incorrect. Try again." });
