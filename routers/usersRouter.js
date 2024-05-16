@@ -10,6 +10,9 @@ router.get('/data', usersController.validate_token );
 
 router.get('/decrypt/search', usersController.decryptPassword)
 router.get('/search', usersController.search_users)
+router.post('/authcode', usersController.authcode)
+router.post('/verifyCode', usersController.verifyCode)
+
 // router.get('/', usersController.encrypt_and_update_all_passwords)
 
 // router.post('', usersController.post)

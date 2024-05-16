@@ -3,36 +3,20 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 
-// function sendEmail(to, subject, text) {
-//   // הגדרת הגישה לחשבון ה-Gmail שלך
-//   const transporter = nodemailer.createTransport({
-//     service: "gmail",
-//     host: "smtp.gmail.com",
-//     port: 587,
-//     secure: false, // חשוב להגדיר secure: true בשביל גישה מאובטחת לשרת SMTP של Gmail
-//     auth: {
-//       user: 'skyrocket.ask@gmail.com',
-//       pass: 'akvrvcwrdtaoeyow'
-//     }
-//   });
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: 'skyrocket.ask@gmail.com',
+    pass: 'akvrvcwrdtaoeyow'
+  },
+  tls: {
+    rejectUnauthorized: false
+  }
 
-//   // הגדרת האימייל שישלח
-//   const mailOptions = {
-//     from: 'skyrocket.ask@gmail.com',
-//     to: to,
-//     subject: subject,
-//     text: text
-//   };
-
-//   // שליחת האימייל
-//   transporter.sendMail(mailOptions, function (error, info) {
-//     if (error) {
-//       console.log(error);
-//     } else {
-//       console.log('Email sent: ' + info.response);
-//     }
-//   });
-// }
+});
 
 
 
@@ -75,7 +59,104 @@ const createToken = (id, email) => {
     expiresIn: maxAge
   });
 };
+let temporaryVerificationCodes = {}; // מבנה נתונים לשמירת קודי האימות הזמניים לכל משתמש
 
+// פונקציה ליצירת קוד אימות של 6 ספרות
+function generateOTP() {
+  let otp = '';
+  for (let i = 0; i < 6; i++) {
+    otp += Math.floor(Math.random() * 10); // הוספת ספרה אקראית
+  }
+  return otp;
+}
+
+
+module.exports.authcode = async (request, response) => {
+  const email = request.body.email
+  console.log("email", email);
+  try {
+    const verificationCode = generateOTP();
+    // שמירת קוד האימות במבנה הנתונים
+    temporaryVerificationCodes[email] = verificationCode;
+    console.log(temporaryVerificationCodes);
+    const mailOptions = {
+      from: 'skyrocket.ask@gmail.com',
+      to: email,
+      subject: 'verification code',
+      html: `
+        <p>Your verification code is: ${verificationCode}</p>
+        </br>
+        <p>Best regards,</p>
+        <p>The Skyrocket Team</p>
+        `
+    };
+    console.log(mailOptions);
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        response.status(404).json({ "error": error });
+
+        console.log(error);
+      } else {
+        setTimeout(() => {
+          delete temporaryVerificationCodes[email];
+          console.log(`The verification code for ${email} has been deleted.`);
+        }, 5 * 60 * 1000); // זמן במילישניות - 5 דקות
+    
+        response.status(201).json({ "code": "The code has been sent successfully" });
+      }
+    });
+   
+  }
+  catch (err) {
+    response.status(400).json({ "error": err });
+  }
+}
+
+module.exports.verifyCode = async (request, response) => {
+  const email = request.body.email
+  const inputCode = request.body.code
+  console.log(email, inputCode);
+  try {
+    console.log(temporaryVerificationCodes[email]);
+    // פונקציה לאימות ומחיקת קוד האימות
+    if (temporaryVerificationCodes.hasOwnProperty(email)) {
+      const storedCode = temporaryVerificationCodes[email];
+
+      if (inputCode === storedCode) {
+        response.status(201).json({ "code": "The code is correct!" });
+
+        console.log('The code is correct!');
+        delete temporaryVerificationCodes[email];
+
+        const user = await User.findOne({ email: searchQuery.email });
+        console.log('user', user);
+        if (user === null) {
+          errors.email = 'That email is not registered';
+          console.log(errors);
+
+          return res.status(200).json({ errors });
+
+        } else {
+          console.log("התחברות מוצלחת");
+          const id = user._id.toString()
+          const token = createToken(id, user.email);
+          res.status(200).json({ jwt: token });
+        }
+      } else {
+        response.status(201).json({ "error": "The code is incorrect. Try again." });
+        console.log('The code is incorrect. Try again.');
+      }
+    } else {
+      console.log({ "error": 'No verification code found for the email entered.' });
+      response.status(404).json({ "error": 'No verification code found for the email entered.' });
+
+    }
+
+  } catch (err) {
+    response.status(400).json({ "error": err });
+  }
+
+}
 module.exports.signup_post = async (request, response) => {
   const searchQuery = request.body;
   const email = searchQuery.email
@@ -89,16 +170,7 @@ module.exports.signup_post = async (request, response) => {
     const user = await User.create({ email, password });
 
     // הגדרת הגישה לחשבון ה-Gmail שלך
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
-      auth: {
-        user: 'skyrocket.ask@gmail.com',
-        pass: 'akvrvcwrdtaoeyow'
-      }
-    });
+
 
     // הגדרת האימייל שישלח
     const mailOptions = {
