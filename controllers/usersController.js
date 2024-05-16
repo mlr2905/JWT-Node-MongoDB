@@ -105,13 +105,13 @@ module.exports.authcode = async (request, response) => {
           console.log(`The verification code for ${email} has been deleted.`);
         }, 5 * 60 * 1000); // זמן במילישניות - 5 דקות
 
-        return response.status(201).json({ "code": "The code has been sent successfully!" });
+        return response.status(201).json({"e":"no", "code": "The code has been sent successfully!" });
       }
     });
 
   }
   catch (err) {
-     return response.status(400).json({ "error": err });
+     return response.status(400).json({"e":"yes" ,"error": err });
   }
 }
 
