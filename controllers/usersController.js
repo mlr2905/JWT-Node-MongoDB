@@ -134,6 +134,7 @@ module.exports.verifyCode = async (request, response) => {
 
         } else {
          
+          console.log("data",user);
           const id = user._id.toString()
           const token = createToken(id, user.email);
           console.log("token",token);
