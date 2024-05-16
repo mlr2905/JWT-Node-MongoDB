@@ -105,7 +105,7 @@ module.exports.authcode = async (request, response) => {
           console.log(`The verification code for ${email} has been deleted.`);
         }, 5 * 60 * 1000); // זמן במילישניות - 5 דקות
 
-        return response.status(201).json({"e":"no", "code": "succeeded" });
+         response.status(201).json({"e":"no", "code": "succeeded" });
       }
     });
 
@@ -141,7 +141,7 @@ module.exports.verifyCode = async (request, response) => {
           console.log('The code is correct!');
           delete temporaryVerificationCodes[email];
           console.log({ "token": token, "code": "The code is correct!" });
-          return  response.status(200).json({ "token": token, "code": "The code is correct!" });
+          return  response.status(200).json({ "e":"no","token": token, "code": "The code is correct!" });
         
         }
       } else {
