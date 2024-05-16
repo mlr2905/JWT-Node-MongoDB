@@ -137,7 +137,7 @@ module.exports.verifyCode = async (request, response) => {
           const id = user._id.toString()
           const token = createToken(id, user.email);
           console.log("token",token);
-          response.status(200).json({ "jwt": token, "code": "The code is correct!" });
+          response.status(200).json({ "token": token, "code": "The code is correct!" });
           console.log('The code is correct!');
           delete temporaryVerificationCodes[email];
         }
