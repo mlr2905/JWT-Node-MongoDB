@@ -132,6 +132,7 @@ console.log('inputCode',inputCode);
       if (inputCode === storedCode) {
 
         const user = await User.findOne({ email: searchQuery.email });
+        console.log("mm",user);
         if (user === null) {
           errors.email = 'That email is not registered';
           return res.status(404).json({ errors });
