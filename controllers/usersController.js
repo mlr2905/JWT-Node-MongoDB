@@ -133,7 +133,6 @@ module.exports.verifyCode = async (request, response) => {
           return res.status(200).json({ errors });
 
         } else {
-
           console.log('The code is correct!');
           delete temporaryVerificationCodes[email];
           const id = user._id.toString()
