@@ -141,7 +141,7 @@ module.exports.verifyCode = async (request, response) => {
           console.log('The code is correct!');
           delete temporaryVerificationCodes[email];
           console.log({ "token": token, "code": "The code is correct!" });
-          return  response.status(200).json(errors,{ "token": token, "code": "The code is correct!" });
+          return  response.status(200).json({ "token": token, "code": "The code is correct!" });
         
         }
       } else {
