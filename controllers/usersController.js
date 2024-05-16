@@ -97,7 +97,7 @@ module.exports.authcode = async (request, response) => {
     transporter.sendMail(mailOptions, function (error, info) {
       if (error) {
         console.log(error)
-        return response.status(404).json({ "error": error });
+        return response.status(404).json({"e":"yes", "error": error });
 
       } else {
         setTimeout(() => {
