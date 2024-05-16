@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const crypto = require('crypto');
-const jwt = require('jsonwebtoken');
+const jsonwebtoken = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
@@ -55,7 +55,7 @@ const handleErrors = (err) => {
 // create json web token
 const maxAge = 3 * 24 * 60 * 60;
 const createToken = (id, email) => {
-  return jwt.sign({ id, email }, 'secret key', {
+  return jsonwebtoken.sign({ id, email }, 'secret key', {
     expiresIn: maxAge
   });
 };
@@ -120,15 +120,11 @@ module.exports.verifyCode = async (request, response) => {
 
   const email = request.body.email
   const inputCode = request.body.code
-  console.log(email, inputCode);
   try {
-    console.log(temporaryVerificationCodes[email]);
     // פונקציה לאימות ומחיקת קוד האימות
     if (temporaryVerificationCodes.hasOwnProperty(email)) {
       const storedCode = temporaryVerificationCodes[email];
-console.log('storedCode',storedCode);
-console.log('inputCode',inputCode);
-console.log(inputCode === storedCode);
+
       if (inputCode === storedCode) {
 
         const user = await User.findOne({ email: email });
@@ -141,7 +137,7 @@ console.log(inputCode === storedCode);
           const id = user._id.toString()
           const token = createToken(id, user.email);
           console.log("token",token);
-          res.status(200).json({ jwt: token, "code": "The code is correct!" });
+          res.status(200).json({ "jwt": token, "code": "The code is correct!" });
           console.log('The code is correct!');
           delete temporaryVerificationCodes[email];
         }
@@ -270,7 +266,7 @@ module.exports.validate_token = (req, res) => {
     return;
   }
   console.log(token);
-  jwt.verify(token, 'secret key', async (err, decodedToken) => {
+  jsonwebtoken.verify(token, 'secret key', async (err, decodedToken) => {
     if (err) {
       console.log('402');
       res.status(401).json({ "status": "token not valid!" })
