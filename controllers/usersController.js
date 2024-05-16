@@ -132,17 +132,18 @@ console.log(inputCode === storedCode);
       if (inputCode === storedCode) {
 
         const user = await User.findOne({ email: email });
-        console.log("mm",user);
         if (user === null) {
           errors.email = 'That email is not registered';
           return res.status(404).json({ errors });
 
         } else {
-          console.log('The code is correct!');
-          delete temporaryVerificationCodes[email];
+         
           const id = user._id.toString()
           const token = createToken(id, user.email);
+          console.log("token",token);
           res.status(200).json({ jwt: token, "code": "The code is correct!" });
+          console.log('The code is correct!');
+          delete temporaryVerificationCodes[email];
         }
       } else {
         response.status(404).json({ "error": "The code is incorrect. Try again." });
