@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const crypto = require('crypto');
-const jsonwebtoken = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
@@ -55,7 +55,7 @@ const handleErrors = (err) => {
 // create json web token
 const maxAge = 3 * 24 * 60 * 60;
 const createToken = (id, email) => {
-  return jsonwebtoken.sign({ id, email }, 'secret key', {
+  return jwt.sign({ id, email }, 'secret key', {
     expiresIn: maxAge
   });
 };
@@ -273,7 +273,7 @@ module.exports.validate_token = (req, res) => {
     return;
   }
   console.log(token);
-  jsonwebtoken.verify(token, 'secret key', async (err, decodedToken) => {
+  jwt.verify(token, 'secret key', async (err, decodedToken) => {
     if (err) {
       console.log('402');
       res.status(401).json({ "status": "token not valid!" })
