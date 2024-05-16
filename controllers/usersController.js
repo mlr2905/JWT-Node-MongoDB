@@ -75,6 +75,9 @@ module.exports.authcode = async (request, response) => {
   const email = request.body.email
   console.log("email", email);
   try {
+    if (temporaryVerificationCodes.hasOwnProperty(email)) {
+      delete temporaryVerificationCodes[email];
+  }
     const verificationCode = generateOTP();
     // שמירת קוד האימות במבנה הנתונים
     temporaryVerificationCodes[email] = verificationCode;
@@ -113,6 +116,8 @@ module.exports.authcode = async (request, response) => {
 }
 
 module.exports.verifyCode = async (request, response) => {
+  let errors = { email: '', password: '' };
+
   const email = request.body.email
   const inputCode = request.body.code
   console.log(email, inputCode);
@@ -127,11 +132,8 @@ console.log('inputCode',inputCode);
       if (inputCode === storedCode) {
 
         const user = await User.findOne({ email: searchQuery.email });
-        console.log('user', user);
         if (user === null) {
           errors.email = 'That email is not registered';
-          console.log(errors);
-
           return res.status(404).json({ errors });
 
         } else {
