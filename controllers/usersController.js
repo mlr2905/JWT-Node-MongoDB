@@ -77,7 +77,7 @@ module.exports.authcode = async (request, response) => {
   try {
     if (temporaryVerificationCodes.hasOwnProperty(email)) {
       delete temporaryVerificationCodes[email];
-  }
+    }
     const verificationCode = generateOTP();
     // שמירת קוד האימות במבנה הנתונים
     temporaryVerificationCodes[email] = verificationCode;
@@ -96,22 +96,22 @@ module.exports.authcode = async (request, response) => {
     console.log(mailOptions);
     transporter.sendMail(mailOptions, function (error, info) {
       if (error) {
-        response.status(404).json({ "error": error });
+        console.log(error)
+        return response.status(404).json({ "error": error });
 
-        console.log(error);
       } else {
         setTimeout(() => {
           delete temporaryVerificationCodes[email];
           console.log(`The verification code for ${email} has been deleted.`);
         }, 5 * 60 * 1000); // זמן במילישניות - 5 דקות
 
-        response.status(201).json({ "code": "The code has been sent successfully" });
+        return response.status(201).json({ "code": "The code has been sent successfully" });
       }
     });
 
   }
   catch (err) {
-    response.status(400).json({ "error": err });
+     return response.status(400).json({ "error": err });
   }
 }
 
@@ -133,27 +133,29 @@ module.exports.verifyCode = async (request, response) => {
           return response.status(404).json({ errors });
 
         } else {
-         
-          console.log("data",user);
+
+          console.log("data", user);
           const id = user._id.toString()
           const token = createToken(id, user.email);
-          console.log("token",token);
-          response.status(200).json({ "token": token, "code": "The code is correct!" });
+          console.log("token", token);
           console.log('The code is correct!');
           delete temporaryVerificationCodes[email];
+          return  response.status(200).json({ "token": token, "code": "The code is correct!" });
+        
         }
       } else {
-        response.status(404).json({ "error": "The code is incorrect. Try again." });
         console.log('The code is incorrect. Try again.');
+
+       return response.status(404).json({ "error": "The code is incorrect. Try again." });
       }
     } else {
       console.log({ "error": 'No verification code found for the email entered.' });
-      response.status(404).json({ "error": 'No verification code found for the email entered.' });
+      return response.status(404).json({ "error": 'No verification code found for the email entered.' });
 
     }
 
   } catch (err) {
-    response.status(400).json({ "error": err });
+   return response.status(400).json({ "error": err });
   }
 
 }
@@ -194,16 +196,19 @@ module.exports.signup_post = async (request, response) => {
     transporter.sendMail(mailOptions, function (error, info) {
       if (error) {
         console.log(error);
+        return response.status(404).json({error});
+
       } else {
         console.log('Email sent: ' + info.response);
+        return response.status(201).json({ username: username, email: email, mongo_id: user._id.toString() });
+
       }
     });
 
-    response.status(201).json({ username: username, email: email, mongo_id: user._id.toString() });
   }
   catch (err) {
     const errors = handleErrors(err);
-    response.status(400).json({ errors });
+   return response.status(400).json({ errors });
   }
 }
 
