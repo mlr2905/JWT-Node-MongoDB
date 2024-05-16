@@ -130,14 +130,14 @@ module.exports.verifyCode = async (request, response) => {
         const user = await User.findOne({ email: email });
         if (user === null) {
           errors.email = 'That email is not registered';
-          return res.status(404).json({ errors });
+          return response.status(404).json({ errors });
 
         } else {
          
           const id = user._id.toString()
           const token = createToken(id, user.email);
           console.log("token",token);
-          res.status(200).json({ "jwt": token, "code": "The code is correct!" });
+          response.status(200).json({ "jwt": token, "code": "The code is correct!" });
           console.log('The code is correct!');
           delete temporaryVerificationCodes[email];
         }
