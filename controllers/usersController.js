@@ -59,7 +59,7 @@ const createToken = (id, email) => {
     expiresIn: maxAge
   });
 };
-let temporaryVerificationCodes = {}; // מבנה נתונים לשמירת קודי האימות הזמניים לכל משתמש
+let code_storage = {}; // מבנה נתונים לשמירת קודי האימות הזמניים לכל משתמש
 
 // פונקציה ליצירת קוד אימות של 6 ספרות
 function generateOTP() {
@@ -75,19 +75,19 @@ module.exports.authcode = async (request, response) => {
   const email = request.body.email
   console.log("email", email);
   try {
-    if (temporaryVerificationCodes.hasOwnProperty(email)) {
-      delete temporaryVerificationCodes[email];
+    if (code_storage.hasOwnProperty(email)) {
+      delete code_storage[email];
     }
     const verificationCode = generateOTP();
     // שמירת קוד האימות במבנה הנתונים
-    temporaryVerificationCodes[email] = verificationCode;
-    console.log(temporaryVerificationCodes);
+    code_storage[email] = verificationCode;
+    console.log(code_storage);
     const mailOptions = {
       from: 'skyrocket.ask@gmail.com',
       to: email,
       subject: 'verification code',
       html: `
-        <p>Your verification code is: ${verificationCode}</p>
+        <p>Your verification code is: <b>${verificationCode}</b></p>
         </br>
         <p>Best regards,</p>
         <p>The Skyrocket Team</p>
@@ -101,10 +101,14 @@ module.exports.authcode = async (request, response) => {
 
       } else {
         setTimeout(() => {
-          delete temporaryVerificationCodes[email];
-          console.log(`The verification code for ${email} has been deleted.`);
+          if (code_storage[email]) {
+            delete code_storage[email];
+            console.log(`The verification code for ${email} has been deleted.`);
+          } else {
+            console.log(`The verification code for ${email} was already deleted or does not exist.`);
+          }
         }, 5 * 60 * 1000); // זמן במילישניות - 5 דקות
-
+        
          response.status(201).json({"e":"no", "code": "succeeded" });
       }
     });
@@ -122,8 +126,8 @@ module.exports.verifyCode = async (request, response) => {
   const inputCode = request.body.code
   try {
     // פונקציה לאימות ומחיקת קוד האימות
-    if (temporaryVerificationCodes.hasOwnProperty(email)) {
-      const storedCode = temporaryVerificationCodes[email];
+    if (code_storage.hasOwnProperty(email)) {
+      const storedCode = code_storage[email];
 
       if (inputCode === storedCode) {
 
@@ -139,7 +143,7 @@ module.exports.verifyCode = async (request, response) => {
           const token = createToken(id, user.email);
           console.log("token", token);
           console.log('The code is correct!');
-          delete temporaryVerificationCodes[email];
+          delete code_storage[email];
           console.log({ "token": token, "code": "The code is correct!" });
           return  response.status(200).json({ "e":"no",jwt: token, "code": "The code is correct!" });
         
