@@ -7,6 +7,6 @@ const connectionSchema = new mongoose.Schema({
 
 
 
-const Connections = mongoose.model('Connections', connectionSchema);
+const Connection = mongoose.model('Connections', connectionSchema);
 
-module.exports =Connections;
+module.exports =Connection;

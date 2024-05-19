@@ -1,5 +1,5 @@
 const User = require("../models/User");
-const Connections = require("../models/Connections");
+const Connection = require("../models/Connection");
 
 
 const crypto = require('crypto');
@@ -256,15 +256,15 @@ module.exports.login_post = async (req, res) => {
        
 
 
-        // Check for previous connections
-        const previousConnections = await Connections.find({ "email":email, "ipAddress": ip });
-        console.log("j",previousConnections);
-        console.log(!previousConnections || previousConnections.length === 0);
-        if (!previousConnections || previousConnections.length === 0) {
+        // Check for previous Connection
+        const previousConnection = await Connection.find({ "email":email, "ipAddress": ip });
+        console.log("j",previousConnection);
+        console.log(!previousConnection || previousConnection.length === 0);
+        if (!previousConnection || previousConnection.length === 0) {
           const timestamp = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' GMT';
 
           // Add a new connection record
-          const newConnection = new Connections({"email": email, "ipAddress":ip}) 
+          const newConnection = new Connection({"email": email, "ipAddress":ip}) 
           await newConnection.save();
 
           const mailOptions = {
