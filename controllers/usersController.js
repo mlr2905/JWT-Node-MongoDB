@@ -230,7 +230,7 @@ module.exports.login_post = async (req, res) => {
     const email = searchQuery.email
     const ip = searchQuery.ip
     const userAgent = searchQuery.userAgent
-    console.log("abc",ip,userAgent);
+    console.log("abc", ip, userAgent);
 
     // Check if searching by password
     if (searchQuery.password) {
@@ -242,7 +242,7 @@ module.exports.login_post = async (req, res) => {
     }
 
     // Find the user in the database
-    const user = await User.findOne({ email:email });
+    const user = await User.findOne({ email: email });
 
     if (user === null) {
       errors.email = 'That email is not registered';
@@ -253,18 +253,18 @@ module.exports.login_post = async (req, res) => {
         return res.status(200).json({ errors })
       } else {
         console.log("התחברות מוצלחת");
-       
+
 
 
         // Check for previous Connection
-        const previousConnection = await Connection.find({ "email":email, "ipAddress": ip });
-        console.log("j",previousConnection);
+        const previousConnection = await Connection.find({ "email": email, "ipAddress": ip });
+        console.log("j", previousConnection);
         console.log(!previousConnection || previousConnection.length === 0);
         if (!previousConnection || previousConnection.length === 0) {
           const timestamp = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' GMT';
 
           // Add a new connection record
-          const newConnection = new Connection({"email": email, "ipAddress":ip}) 
+          const newConnection = new Connection({ "email": email, "ipAddress": ip })
           await newConnection.save();
 
           const mailOptions = {
@@ -292,18 +292,21 @@ module.exports.login_post = async (req, res) => {
           transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
               console.log(error);
+              return res.status(404).json({ error });
+
 
             } else {
               console.log('Email sent: ' + info.response);
+              // Create token and return it to the user
+              const id = user._id.toString()
+              const token = createToken(id, user.email);
+              res.status(200).json({ jwt: token });
 
             }
           });
 
 
-          // Create token and return it to the user
-          const id = user._id.toString()
-          const token = createToken(id, user.email);
-          res.status(200).json({ jwt: token });
+
         } else {
           const id = user._id.toString()
           const token = createToken(id, user.email);
