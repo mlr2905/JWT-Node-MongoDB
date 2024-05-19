@@ -306,7 +306,6 @@ module.exports.login_post = async (req, res) => {
           });
 
 
-
         } else {
           const id = user._id.toString()
           const token = createToken(id, user.email);
