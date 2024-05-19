@@ -100,7 +100,7 @@ module.exports.authcode = async (request, response) => {
     transporter.sendMail(mailOptions, function (error, info) {
       if (error) {
         console.log(error)
-        return response.status(404).json({"e":"yes", "error": error });
+        return response.status(404).json({ "e": "yes", "error": error });
 
       } else {
         setTimeout(() => {
@@ -111,14 +111,14 @@ module.exports.authcode = async (request, response) => {
             console.log(`The verification code for ${email} was already deleted or does not exist.`);
           }
         }, 5 * 60 * 1000); // זמן במילישניות - 5 דקות
-        
-         response.status(201).json({"e":"no", "code": "succeeded" });
+
+        response.status(201).json({ "e": "no", "code": "succeeded" });
       }
     });
 
   }
   catch (err) {
-     return response.status(400).json({"e":"yes" ,"error": err });
+    return response.status(400).json({ "e": "yes", "error": err });
   }
 }
 
@@ -148,13 +148,13 @@ module.exports.verifyCode = async (request, response) => {
           console.log('The code is correct!');
           delete code_storage[email];
           console.log({ "token": token, "code": "The code is correct!" });
-          return  response.status(200).json({ "e":"no",jwt: token, "code": "The code is correct!" });
-        
+          return response.status(200).json({ "e": "no", jwt: token, "code": "The code is correct!" });
+
         }
       } else {
         console.log('The code is incorrect. Try again.');
 
-       return response.status(404).json({ "errors": "The code is incorrect. Try again." });
+        return response.status(404).json({ "errors": "The code is incorrect. Try again." });
       }
     } else {
       console.log({ "error": 'No verification code found for the email entered.' });
@@ -163,7 +163,7 @@ module.exports.verifyCode = async (request, response) => {
     }
 
   } catch (err) {
-   return response.status(400).json({ "error": err });
+    return response.status(400).json({ "error": err });
   }
 
 }
@@ -204,7 +204,7 @@ module.exports.signup_post = async (request, response) => {
     transporter.sendMail(mailOptions, function (error, info) {
       if (error) {
         console.log(error);
-        return response.status(404).json({error});
+        return response.status(404).json({ error });
 
       } else {
         console.log('Email sent: ' + info.response);
@@ -216,7 +216,7 @@ module.exports.signup_post = async (request, response) => {
   }
   catch (err) {
     const errors = handleErrors(err);
-   return response.status(400).json({ errors });
+    return response.status(400).json({ errors });
   }
 }
 
@@ -226,6 +226,9 @@ module.exports.login_post = async (req, res) => {
   try {
     let errors = { email: '', password: '' };
     const searchQuery = req.body;
+    const email = searchQuery.email
+    const ip = searchQuery.ip
+    const userAgent = searchQuery.userAgent
 
     // Check if searching by password
     if (searchQuery.password) {
@@ -237,7 +240,7 @@ module.exports.login_post = async (req, res) => {
     }
 
     // Find the user in the database
-    const user = await User.findOne({ email: searchQuery.email });
+    const user = await User.findOne({ email:email });
 
     if (user === null) {
       errors.email = 'That email is not registered';
@@ -248,22 +251,17 @@ module.exports.login_post = async (req, res) => {
         return res.status(200).json({ errors })
       } else {
         console.log("התחברות מוצלחת");
-        const forwardedFor = req.headers['x-forwarded-for'];
-        console.log("aa",forwardedFor);
-        const clientIPs = forwardedFor.split(',').map(ip => ip.trim());
-        console.log("bb",clientIPs);
-        const userAgent = req.headers['user-agent'];
+       
 
-        const ipAddress = req.clientIPs[0];
 
         // Check for previous connections
-        const previousConnections = await Connections.find({ email: user.email,ipAddress:ipAddress });
+        const previousConnections = await Connections.find({ email:email, ipAddress: ip });
         if (!previousConnections) {
           const timestamp = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' GMT';
 
           // Add a new connection record
           const newConnection = new Connections({
-            email: user.email,
+            email: email,
             ipAddress
           });
           await newConnection.save();
@@ -274,9 +272,9 @@ module.exports.login_post = async (req, res) => {
             subject: 'Successful registration - welcome to our website',
             html:
               `
-              <p>We're verifying a recent sign-in for ${user.email}:</p>
+              <p>We're verifying a recent sign-in for ${email}:</p>
               <p>Timestamp:	${timestamp} GMT</P>
-              <p>IP Address:	${ipAddress}</p>
+              <p>IP Address:	${ip}</p>
               <p>User agent:	${userAgent}</p>
               <p>You're receiving this message because of a successful sign-in from a device that we didn’t recognize. If you believe that this sign-in is suspicious, please reset your password immediately.</p>
               <p>If you're aware of this sign-in, please disregard this notice. This can happen when you use your browser's incognito or private browsing mode or clear your cookies.</p>
@@ -288,20 +286,20 @@ module.exports.login_post = async (req, res) => {
               
                `
           };
-      
+
           // שליחת האימייל
           transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
               console.log(error);
-              return response.status(404).json({error});
-      
+              return response.status(404).json({ error });
+
             } else {
               console.log('Email sent: ' + info.response);
               return response.status(201).json({ username: username, email: email, mongo_id: user._id.toString() });
-      
+
             }
           });
-        
+
 
           // Create token and return it to the user
           const id = user._id.toString()
