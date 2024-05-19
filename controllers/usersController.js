@@ -5,6 +5,7 @@ const Connections = require("../models/Connections");
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
+const { log } = require("util");
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -256,15 +257,14 @@ module.exports.login_post = async (req, res) => {
 
 
         // Check for previous connections
-        const previousConnections = await Connections.find({ email:email, ipAddress: ip });
+        const previousConnections = await Connections.find({ "email":email, "ipAddress": ip });g
+        console.log("j",previousConnections);
+        console.log(!previousConnections);
         if (!previousConnections) {
           const timestamp = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' GMT';
 
           // Add a new connection record
-          const newConnection = new Connections({
-            email: email,
-            ipAddress:ip
-          });
+          const newConnection = new Connections({"email": email, "ipAddress":ip}) 
           await newConnection.save();
 
           const mailOptions = {
