@@ -252,6 +252,7 @@ module.exports.login_post = async (req, res) => {
         console.log("aa",forwardedFor);
         const clientIPs = forwardedFor.split(',').map(ip => ip.trim());
         console.log("bb",clientIPs);
+        const userAgent = req.headers['user-agent'];
 
         const ipAddress = req.clientIPs[0];
 
@@ -259,7 +260,6 @@ module.exports.login_post = async (req, res) => {
         const previousConnections = await Connections.find({ email: user.email,ipAddress:ipAddress });
         if (!previousConnections) {
           const timestamp = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' GMT';
-          const userAgent = req.headers['user-agent'];
 
           // Add a new connection record
           const newConnection = new Connections({
