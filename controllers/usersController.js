@@ -261,9 +261,7 @@ module.exports.login_post = async (req, res) => {
           // Add a new connection record
           const newConnection = new Connections({
             email: user.email,
-            timestamp,
-            ipAddress,
-            userAgent
+            ipAddress
           });
           await newConnection.save();
 
