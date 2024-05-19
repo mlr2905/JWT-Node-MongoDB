@@ -257,7 +257,7 @@ module.exports.login_post = async (req, res) => {
 
 
         // Check for previous connections
-        const previousConnections = await Connections.find({ "email":email, "ipAddress": ip });g
+        const previousConnections = await Connections.find({ "email":email, "ipAddress": ip });
         console.log("j",previousConnections);
         console.log(!previousConnections);
         if (!previousConnections) {
