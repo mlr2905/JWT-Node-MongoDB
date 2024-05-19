@@ -248,12 +248,12 @@ module.exports.login_post = async (req, res) => {
         return res.status(200).json({ errors })
       } else {
         console.log("התחברות מוצלחת");
+        const ipAddress = req.clientIPs[0];
 
         // Check for previous connections
-        const previousConnections = await Connections.find({ email: user.email });
-        if (previousConnections.length === 0) {
+        const previousConnections = await Connections.find({ email: user.email,ipAddress:ipAddress });
+        if (!previousConnections) {
           const timestamp = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' GMT';
-          const ipAddress = req.clientIPs[0];
           const userAgent = req.headers['user-agent'];
 
           // Add a new connection record
@@ -271,7 +271,7 @@ module.exports.login_post = async (req, res) => {
             subject: 'Successful registration - welcome to our website',
             html:
               `
-              <p>We're verifying a recent sign-in for ${email}:</p>
+              <p>We're verifying a recent sign-in for ${user.email}:</p>
               <p>Timestamp:	${timestamp} GMT</P>
               <p>IP Address:	${ipAddress}</p>
               <p>User agent:	${userAgent}</p>
