@@ -248,8 +248,8 @@ module.exports.login_post = async (req, res) => {
         return res.status(200).json({ errors })
       } else {
         console.log("התחברות מוצלחת");
-        const a = req.clientIPs;
-        console.log("ipAddress",a);
+        const forwardedFor = req.headers['x-forwarded-for'];
+        const clientIPs = forwardedFor.split(',').map(ip => ip.trim());
         const ipAddress = req.clientIPs[0];
 
         // Check for previous connections
