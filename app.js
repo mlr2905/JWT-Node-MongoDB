@@ -41,7 +41,10 @@ mongoose.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true})
   .then((result) => {
     console.log('Mongo connected ...');
     console.log(result.connection._connectionString)    
+
     app.listen(3001, () => console.log(`Listening to port ${3001}`))
+    console.log('Express server is running ....')    
+
   })
   .catch((err) => console.log(err));
 

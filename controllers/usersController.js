@@ -263,7 +263,7 @@ module.exports.login_post = async (req, res) => {
           // Add a new connection record
           const newConnection = new Connections({
             email: email,
-            ipAddress
+            ipAddress:ip
           });
           await newConnection.save();
 
@@ -292,11 +292,9 @@ module.exports.login_post = async (req, res) => {
           transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
               console.log(error);
-              return response.status(404).json({ error });
 
             } else {
               console.log('Email sent: ' + info.response);
-              return response.status(201).json({ username: username, email: email, mongo_id: user._id.toString() });
 
             }
           });
