@@ -274,7 +274,7 @@ module.exports.login_post = async (req, res) => {
             html:
               `
               <p>We're verifying a recent sign-in for ${email}:</p>
-              <p>Timestamp:	${timestamp} GMT</P>
+              <p>Timestamp:	${timestamp}</P>
               <p>IP Address:	${ip}</p>
               <p>User agent:	${userAgent}</p>
               <p>You're receiving this message because of a successful sign-in from a device that we didn’t recognize. If you believe that this sign-in is suspicious, please reset your password immediately.</p>
