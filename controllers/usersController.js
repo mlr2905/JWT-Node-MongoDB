@@ -229,6 +229,7 @@ module.exports.login_post = async (req, res) => {
     const email = searchQuery.email
     const ip = searchQuery.ip
     const userAgent = searchQuery.userAgent
+    console.log("abc",ip,userAgent);
 
     // Check if searching by password
     if (searchQuery.password) {
