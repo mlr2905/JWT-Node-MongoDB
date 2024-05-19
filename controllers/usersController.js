@@ -259,8 +259,8 @@ module.exports.login_post = async (req, res) => {
         // Check for previous connections
         const previousConnections = await Connections.find({ "email":email, "ipAddress": ip });
         console.log("j",previousConnections);
-        console.log(!previousConnections);
-        if (!previousConnections) {
+        console.log(!previousConnections || previousConnections.length === 0);
+        if (!previousConnections || previousConnections.length === 0) {
           const timestamp = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' GMT';
 
           // Add a new connection record
