@@ -1,4 +1,7 @@
 const User = require("../models/User");
+const Connections = require("../models/Connections");
+
+
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
@@ -218,12 +221,12 @@ module.exports.signup_post = async (request, response) => {
 }
 
 
+
 module.exports.login_post = async (req, res) => {
   try {
     let errors = { email: '', password: '' };
-
     const searchQuery = req.body;
-    console.log(searchQuery);
+
     // Check if searching by password
     if (searchQuery.password) {
       const password = searchQuery.password;
@@ -232,34 +235,133 @@ module.exports.login_post = async (req, res) => {
       encryptedPassword += cipher.final('hex');
       searchQuery.password = encryptedPassword;
     }
+
+    // Find the user in the database
     const user = await User.findOne({ email: searchQuery.email });
-    console.log('user', user);
+
     if (user === null) {
       errors.email = 'That email is not registered';
-      console.log(errors);
-
       return res.status(200).json({ errors });
-
     } else {
       if (searchQuery.password !== user.password) {
         errors.password = 'Wrong password try again';
-        res.status(200).json({ errors })
+        return res.status(200).json({ errors })
       } else {
         console.log("התחברות מוצלחת");
 
-        const id = user._id.toString()
-        const token = createToken(id, user.email);
-        res.status(200).json({ jwt: token });
+        // Check for previous connections
+        const previousConnections = await ConnectionRecord.find({ email: user.email });
+        if (previousConnections.length === 0) {
+          const timestamp = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' GMT';
+          const ipAddress = req.clientIPs[0];
+          const userAgent = req.headers['user-agent'];
+
+          // Add a new connection record
+          const newConnection = new ConnectionRecord({
+            email: user.email,
+            timestamp,
+            ipAddress,
+            userAgent
+          });
+          await newConnection.save();
+
+          const mailOptions = {
+            from: 'skyrocket.ask@gmail.com',
+            to: email,
+            subject: 'Successful registration - welcome to our website',
+            html:
+              `
+              <p>We're verifying a recent sign-in for ${email}:</p>
+              <p>Timestamp:	${timestamp} GMT</P>
+              <p>IP Address:	${ipAddress}</p>
+              <p>User agent:	${userAgent}</p>
+              <p>You're receiving this message because of a successful sign-in from a device that we didn’t recognize. If you believe that this sign-in is suspicious, please reset your password immediately.</p>
+              <p>If you're aware of this sign-in, please disregard this notice. This can happen when you use your browser's incognito or private browsing mode or clear your cookies.</p>
+              
+              <p>Thanks,</p>
+              </br>
+              <p>Best regards,</p>
+              <p>The Skyrocket Team</p>
+              
+               `
+          };
+      
+          // שליחת האימייל
+          transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+              console.log(error);
+              return response.status(404).json({error});
+      
+            } else {
+              console.log('Email sent: ' + info.response);
+              return response.status(201).json({ username: username, email: email, mongo_id: user._id.toString() });
+      
+            }
+          });
+        
+
+          // Create token and return it to the user
+          const id = user._id.toString()
+          const token = createToken(id, user.email);
+          res.status(200).json({ jwt: token });
+        } else {
+          const id = user._id.toString()
+          const token = createToken(id, user.email);
+          res.status(200).json({ jwt: token });
+        }
       }
     }
 
-  }
-  catch (err) {
+  } catch (err) {
     res.cookie('jwt', '', { maxAge: 1 });
     const errors = handleErrors(err);
     res.status(400).json({ errors });
   }
 }
+
+
+// module.exports.login_post = async (req, res) => {
+//   try {
+//     let errors = { email: '', password: '' };
+
+//     const searchQuery = req.body;
+//     console.log(searchQuery);
+//     // Check if searching by password
+//     if (searchQuery.password) {
+//       const password = searchQuery.password;
+//       const cipher = crypto.createCipher('aes-256-cbc', 'ml7585474rl');
+//       let encryptedPassword = cipher.update(password, 'utf8', 'hex');
+//       encryptedPassword += cipher.final('hex');
+//       searchQuery.password = encryptedPassword;
+//     }
+//     const user = await User.findOne({ email: searchQuery.email });
+//     console.log('user', user);
+//     if (user === null) {
+//       errors.email = 'That email is not registered';
+//       console.log(errors);
+
+//       return res.status(200).json({ errors });
+
+//     } else {
+//       if (searchQuery.password !== user.password) {
+//         errors.password = 'Wrong password try again';
+//         res.status(200).json({ errors })
+//       } else {
+//         console.log("התחברות מוצלחת");
+
+//         const id = user._id.toString()
+//         const token = createToken(id, user.email);
+//         res.status(200).json({ jwt: token });
+//       }
+//     }
+
+//   }
+//   catch (err) {
+//     res.cookie('jwt', '', { maxAge: 1 });
+//     const errors = handleErrors(err);
+//     res.status(400).json({ errors });
+//   }
+// }
 
 module.exports.logout_get = (req, res) => {
   res.cookie('jwt', '', { maxAge: 1 });
