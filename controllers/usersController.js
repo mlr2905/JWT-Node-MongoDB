@@ -250,14 +250,14 @@ module.exports.login_post = async (req, res) => {
         console.log("התחברות מוצלחת");
 
         // Check for previous connections
-        const previousConnections = await ConnectionRecord.find({ email: user.email });
+        const previousConnections = await Connections.find({ email: user.email });
         if (previousConnections.length === 0) {
           const timestamp = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' GMT';
           const ipAddress = req.clientIPs[0];
           const userAgent = req.headers['user-agent'];
 
           // Add a new connection record
-          const newConnection = new ConnectionRecord({
+          const newConnection = new Connections({
             email: user.email,
             timestamp,
             ipAddress,
