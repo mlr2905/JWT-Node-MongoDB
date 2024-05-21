@@ -158,8 +158,8 @@ module.exports.verifyCode = async (request, response) => {
         return response.status(404).json({ "e" : "yes","error": "The code is incorrect. Try again." });
       }
     } else {
-      console.log({ "error": 'No verification code found for the email entered.' });
-      return response.status(404).json({ "errors": 'No verification code found for the email entered.' });
+      console.log('No verification code found for the email entered.' );
+      return response.status(404).json({ "e" : "yes","error": 'No verification code found for the email entered.' });
 
     }
 
