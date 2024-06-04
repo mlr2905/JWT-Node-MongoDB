@@ -249,6 +249,8 @@ module.exports.login_post = async (req, res) => {
       return res.status(404).json({ errors });
     } else {
       if (searchQuery.password !== user.password) {
+        console.log("Wrong password try again");
+
         errors.password = 'Wrong password try again';
         return res.status(400).json({ errors });
       } else {
@@ -306,9 +308,7 @@ module.exports.login_post = async (req, res) => {
     }
 
   } catch (err) {
-    res.cookie('jwt', '', { maxAge: 1 });
-    const errors = handleErrors(err);
-    return res.status(400).json({ errors });
+    return res.status(400).json({ "e":"yes","error": errors,err});
   }
 }
 
