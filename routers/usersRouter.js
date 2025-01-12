@@ -1,10 +1,13 @@
 const { Router } = require('express');
 const usersController = require('../controllers/usersController');
+const path = require('path');
+
 
 const router = Router();
 router.get('/', (req, res) => {
-    res.sendFile(path.join('../public/404.html'));
+    res.sendFile(path.join(__dirname, '../404.html'));
 });
+
 router.post('/signup', usersController.signup_post);
 router.post('/login', usersController.login_post);
 router.get('/logout', usersController.logout_get);
