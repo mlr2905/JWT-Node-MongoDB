@@ -171,6 +171,7 @@ module.exports.verifyCode = async (request, response) => {
 module.exports.signup_post = async (request, response) => {
   const searchQuery = request.body;
   const email = searchQuery.email
+  const authProvider = searchQuery.authProvider
   const cipher = crypto.createCipher('aes-256-cbc', 'ml7585474rl');
   let encryptedPassword = cipher.update(searchQuery.password, 'utf8', 'hex');
   encryptedPassword += cipher.final('hex');
@@ -178,7 +179,7 @@ module.exports.signup_post = async (request, response) => {
   const username = email.substring(0, email.indexOf('@'));
   try {
     console.log('mongo email, password', email, password);
-    const user = await User.create({ email, password });
+    const user = await User.create({ email, password ,authProvider});
 
     // הגדרת הגישה לחשבון ה-Gmail שלך
 
