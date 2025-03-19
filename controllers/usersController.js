@@ -170,6 +170,7 @@ module.exports.verifyCode = async (request, response) => {
 }
 module.exports.signup_post = async (request, response) => {
   const searchQuery = request.body;
+  console.log(searchQuery)
   const email = searchQuery.email
   const authProvider = searchQuery.authProvider
   const cipher = crypto.createCipher('aes-256-cbc', 'ml7585474rl');
