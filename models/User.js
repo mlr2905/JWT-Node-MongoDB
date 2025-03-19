@@ -13,6 +13,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please enter a password'],
     minlength: [6, 'Minimum password length is 6 characters'],
+  },
+  authProvider: {
+    type: String,
+    enum: ['email', 'google', 'github', 'facebook'],
+    required: true,
+    default: 'email'
   }
 }, { versionKey: false }); // Adding versionKey: false to prevent __v field addition
 
