@@ -173,7 +173,7 @@ module.exports.signup_post = async (request, response) => {
   console.log(searchQuery)
   const email = searchQuery.email
   const authProvider = searchQuery.authProvider
-  const cipher = crypto.createCipher('aes-256-cbc', 'ml7585474rl');
+  const cipher = crypto.createCipher('aes-256-cbc', 'process.env.KEY');
   let encryptedPassword = cipher.update(searchQuery.password, 'utf8', 'hex');
   encryptedPassword += cipher.final('hex');
   const password = encryptedPassword;
@@ -237,7 +237,7 @@ module.exports.login_post = async (req, res) => {
     // Check if searching by password
     if (searchQuery.password) {
       const password = searchQuery.password;
-      const cipher = crypto.createCipher('aes-256-cbc', 'ml7585474rl');
+      const cipher = crypto.createCipher('aes-256-cbc', 'process.env.KEY');
       let encryptedPassword = cipher.update(password, 'utf8', 'hex');
       encryptedPassword += cipher.final('hex');
       searchQuery.password = encryptedPassword;
@@ -324,7 +324,7 @@ module.exports.login_post = async (req, res) => {
 //     // Check if searching by password
 //     if (searchQuery.password) {
 //       const password = searchQuery.password;
-//       const cipher = crypto.createCipher('aes-256-cbc', 'ml7585474rl');
+//       const cipher = crypto.createCipher('aes-256-cbc', 'process.env.KEY');
 //       let encryptedPassword = cipher.update(password, 'utf8', 'hex');
 //       encryptedPassword += cipher.final('hex');
 //       searchQuery.password = encryptedPassword;
@@ -399,7 +399,7 @@ module.exports.search_users = async (req, res) => {
     // Check if searching by password
     if (searchQuery.password) {
       const password = searchQuery.password;
-      const cipher = crypto.createCipher('aes-256-cbc', 'ml7585474rl');
+      const cipher = crypto.createCipher('aes-256-cbc', process.env.KEY);
       let encryptedPassword = cipher.update(password, 'utf8', 'hex');
       encryptedPassword += cipher.final('hex');
       searchQuery.password = encryptedPassword;
@@ -426,7 +426,7 @@ module.exports.decryptPassword = async (req, res) => {
   const encryptedPassword = req.query.password
   console.log('encryptedPassword', encryptedPassword);
   try {
-    const decipher = crypto.createDecipher('aes-256-cbc', 'ml7585474rl');
+    const decipher = crypto.createDecipher('aes-256-cbc', 'process.env.KEY');
     let decryptedPassword = decipher.update(encryptedPassword, 'hex', 'utf8');
     decryptedPassword += decipher.final('utf8');
     res.status(200).json({ Succeeded: `This is your password: || ${decryptedPassword} ||` });
