@@ -4,9 +4,9 @@ const path = require('path');
 
 
 const router = Router();
-router.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../static/500.html'));
-});
+// router.get('/', (req, res) => {
+//     res.sendFile(path.join(__dirname, '../static/500.html'));
+// });
 router.post('/log', usersController.loginWithCredential);
 router.post('/reg', usersController.registerCredential);
 
@@ -20,9 +20,9 @@ router.get('/search', usersController.search_users)
 router.post('/authcode', usersController.authcode)
 router.post('/verifyCode', usersController.verifyCode)
 
-router.use((req, res) => {
-    res.status(404).sendFile(path.join(__dirname, '../static/404.html'));
-});
+// router.use((req, res) => {
+//     res.status(404).sendFile(path.join(__dirname, '../static/404.html'));
+// });
 // router.get('/', usersController.encrypt_and_update_all_passwords)
 
 // router.post('', usersController.post)
