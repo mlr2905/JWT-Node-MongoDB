@@ -338,7 +338,7 @@
                 const attestationObject = bufferToBase64(credential.response.attestationObject);
                 
                 // שליחת הקרדנציאל לשרת
-                const response = await fetch(API_REG_URL + "/credential", {
+                const response = await fetch(API_REG_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -412,7 +412,7 @@
                 const signature = bufferToBase64(assertion.response.signature);
                 
                 // שליחת האימות לשרת
-                const response = await fetch(API_LOGIN_URL + "/credential", {
+                const response = await fetch(API_LOGIN_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
