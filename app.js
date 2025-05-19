@@ -10,7 +10,7 @@ const usersRouter = require('./routers/usersRouter');
 const app = express(); 
 
 // middleware
-app.use(express.static('public'));
+app.use(express.static('static'));
 app.use(express.json());
 
 
