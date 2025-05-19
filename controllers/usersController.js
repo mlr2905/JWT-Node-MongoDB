@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const Connection = require("../models/Connection");
-
+const WebAuthnCredential = require('../models/WebAuthn');
 
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
@@ -74,6 +74,66 @@ function generateOTP() {
   return otp;
 }
 
+
+module.exports.registerCredential = async (request, response) => {
+  const { email, credentialID, publicKey } = request.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return response.status(404).json({ e: 'yes', error: 'User not found' });
+    }
+
+    // אם כבר קיים מפתח עם credentialID הזה, נמחק קודם (או מחזירים שגיאה)
+    const existing = await WebAuthnCredential.findOne({ credentialID });
+    if (existing) {
+      await WebAuthnCredential.deleteOne({ credentialID });
+    }
+
+    const newCredential = new WebAuthnCredential({
+      user: user._id,
+      credentialID,
+      publicKey,
+      counter: 0,
+      createdAt: new Date()
+    });
+
+    await newCredential.save();
+
+    return response.status(201).json({ e: 'no', code: 'credential_registered' });
+  }
+  catch (err) {
+    console.error(err);
+    return response.status(400).json({ e: 'yes', error: err.message });
+  }
+};
+
+module.exports.loginWithCredential = async (request, response) => {
+  const { credentialID, signature } = request.body;
+
+  try {
+    const credential = await WebAuthnCredential.findOne({ credentialID }).populate('user');
+    if (!credential) {
+      return response.status(401).json({ e: 'yes', error: 'Credential not recognized' });
+    }
+
+    // כאן תבצע את אימות החתימה עם publicKey (תלוי איך אתה מיישם את האימות)
+    // נניח שעברת את האימות, אז נשלח חזרה אישור כניסה:
+
+    return response.status(200).json({
+      e: 'no',
+      code: 'login_succeeded',
+      user: {
+        email: credential.user.email,
+        id: credential.user._id
+      }
+    });
+  }
+  catch (err) {
+    console.error(err);
+    return response.status(400).json({ e: 'yes', error: err.message });
+  }
+};
 
 module.exports.authcode = async (request, response) => {
   const email = request.body.email
