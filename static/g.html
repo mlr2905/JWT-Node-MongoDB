@@ -1,60 +1,502 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <title>Register with Passkey</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מערכת התחברות ביומטרית</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #777;
+        }
+        .tab.active {
+            color: #2c7be5;
+            border-bottom: 3px solid #2c7be5;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #2c7be5;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #1b68d2;
+        }
+        button:disabled {
+            background-color: #b3b3b3;
+            cursor: not-allowed;
+        }
+        .form-container {
+            display: none;
+        }
+        .form-container.active {
+            display: block;
+        }
+        .message {
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        #biometricStatus {
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+    </style>
 </head>
 <body>
-  <h1>Register with Passkey</h1>
-  <form id="registerForm">
-    <label>Email: <input type="email" id="email" required /></label>
-    <button type="submit">Register</button>
-  </form>
+    <div class="container">
+        <h1>מערכת זיהוי ביומטרית</h1>
+        
+        <div id="biometricStatus">בודק תמיכה באימות ביומטרי...</div>
+        
+        <div class="tabs">
+            <div class="tab active" id="registerTab">רישום</div>
+            <div class="tab" id="loginTab">התחברות</div>
+        </div>
+        
+        <div class="form-container active" id="registerForm">
+            <div class="form-group">
+                <label for="registerEmail">כתובת אימייל</label>
+                <input type="email" id="registerEmail" placeholder="הזן את האימייל שלך">
+            </div>
+            <div class="form-group">
+                <label for="registerPassword">סיסמה</label>
+                <input type="password" id="registerPassword" placeholder="בחר סיסמה">
+            </div>
+            <button id="registerButton">הירשם</button>
+            <button id="registerBiometricButton" disabled>הוסף זיהוי ביומטרי</button>
+            <div id="registerMessage" class="message" style="display: none;"></div>
+        </div>
+        
+        <div class="form-container" id="loginForm">
+            <div class="form-group">
+                <label for="loginEmail">כתובת אימייל</label>
+                <input type="email" id="loginEmail" placeholder="הזן את האימייל שלך">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">סיסמה</label>
+                <input type="password" id="loginPassword" placeholder="הזן סיסמה">
+            </div>
+            <button id="loginButton">התחבר</button>
+            <button id="loginBiometricButton" disabled>התחבר עם זיהוי ביומטרי</button>
+            <div id="loginMessage" class="message" style="display: none;"></div>
+        </div>
+    </div>
 
-  <script>
-    const form = document.getElementById('registerForm');
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('email').value;
-
-      try {
-        // 1. בקשת פרטי הרשמה מהשרת (כולל challenge)
-        const optionsResponse = await fetch('https://jwt-node-mongodb.onrender.com/reg-options', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email })
-        });
-
-        const options = await optionsResponse.json();
-
-        // 2. המרת המחרוזות לבינארי (נדרש על ידי WebAuthn)
-        options.challenge = Uint8Array.from(atob(options.challenge), c => c.charCodeAt(0));
-        options.user.id = Uint8Array.from(atob(options.user.id), c => c.charCodeAt(0));
-
-        // 3. בקשת יצירת מפתח גישה בדפדפן
-        const credential = await navigator.credentials.create({ publicKey: options });
-
-        // 4. שליחת תוצאת המפתח לשרת
-        const credentialData = {
-          email,
-          credentialID: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))),
-          publicKey: btoa(String.fromCharCode(...new Uint8Array(credential.response.attestationObject)))
-        };
-
-        const result = await fetch('https://jwt-node-mongodb.onrender.com/reg', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(credentialData)
-        });
-
-        const finalRes = await result.json();
-        alert(JSON.stringify(finalRes));
-      } catch (err) {
-        console.error(err);
-        alert('Registration failed');
-      }
-    });
-  </script>
+    <script>
+        // הגדרת הכתובות של נקודות הקצה באתר
+        const API_REG_URL = "https://jwt-node-mongodb.onrender.com/reg";
+        const API_LOGIN_URL = "https://jwt-node-mongodb.onrender.com/log";
+        
+        // משתנים גלובליים
+        let isWebAuthnSupported = false;
+        let storedEmail = localStorage.getItem('userEmail');
+        let storedCredentialId = localStorage.getItem('credentialId');
+        
+        // בדיקת תמיכה בWebAuthn
+        function checkWebAuthnSupport() {
+            const biometricStatus = document.getElementById('biometricStatus');
+            
+            if (window.PublicKeyCredential) {
+                PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+                    .then((available) => {
+                        if (available) {
+                            isWebAuthnSupported = true;
+                            biometricStatus.textContent = '✅ המכשיר שלך תומך באימות ביומטרי';
+                            biometricStatus.style.color = 'green';
+                            
+                            // אפשר את כפתורי הביומטריה
+                            document.getElementById('registerBiometricButton').disabled = false;
+                            document.getElementById('loginBiometricButton').disabled = false;
+                            
+                            // אם יש מזהה שמור, מלא את שדה האימייל בטופס ההתחברות
+                            if (storedEmail) {
+                                document.getElementById('loginEmail').value = storedEmail;
+                            }
+                        } else {
+                            biometricStatus.textContent = '❌ המכשיר שלך לא תומך באימות ביומטרי';
+                            biometricStatus.style.color = 'red';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('שגיאה בבדיקת תמיכה ב-WebAuthn:', error);
+                        biometricStatus.textContent = '❌ אירעה שגיאה בבדיקת תמיכה באימות ביומטרי';
+                        biometricStatus.style.color = 'red';
+                    });
+            } else {
+                biometricStatus.textContent = '❌ הדפדפן שלך לא תומך באימות ביומטרי';
+                biometricStatus.style.color = 'red';
+            }
+        }
+        
+        // פונקציות עזר לבסיס64
+        function bufferToBase64(buffer) {
+            return btoa(String.fromCharCode(...new Uint8Array(buffer)));
+        }
+        
+        function base64ToBuffer(base64) {
+            const binaryString = atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+        
+        // פונקציה לרישום רגיל (ללא ביומטריה)
+        async function registerUser() {
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const messageElement = document.getElementById('registerMessage');
+            
+            if (!email || !password) {
+                showMessage(messageElement, 'יש למלא את כל השדות', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(API_REG_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password }),
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage(messageElement, 'הרישום בוצע בהצלחה! כעת תוכל להוסיף זיהוי ביומטרי', 'success');
+                    localStorage.setItem('userEmail', email);
+                    storedEmail = email;
+                } else {
+                    showMessage(messageElement, 'שגיאה ברישום: ' + (data.error || 'אירעה שגיאה'), 'error');
+                }
+            } catch (error) {
+                console.error('שגיאה ברישום:', error);
+                showMessage(messageElement, 'אירעה שגיאה בתהליך הרישום', 'error');
+            }
+        }
+        
+        // פונקציה להתחברות רגילה (ללא ביומטריה)
+        async function loginUser() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const messageElement = document.getElementById('loginMessage');
+            
+            if (!email || !password) {
+                showMessage(messageElement, 'יש למלא את כל השדות', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(API_LOGIN_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password }),
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage(messageElement, 'התחברת בהצלחה!', 'success');
+                    localStorage.setItem('userEmail', email);
+                    storedEmail = email;
+                    
+                    // כאן תוכל להפנות את המשתמש לדף הבית או לשמור את הטוקן
+                    if (data.token) {
+                        localStorage.setItem('token', data.token);
+                    }
+                } else {
+                    showMessage(messageElement, 'שגיאה בהתחברות: ' + (data.error || 'אירעה שגיאה'), 'error');
+                }
+            } catch (error) {
+                console.error('שגיאה בהתחברות:', error);
+                showMessage(messageElement, 'אירעה שגיאה בתהליך ההתחברות', 'error');
+            }
+        }
+        
+        // פונקציה לרישום אמצעי ביומטרי
+        async function registerBiometric() {
+            const email = document.getElementById('registerEmail').value || storedEmail;
+            const messageElement = document.getElementById('registerMessage');
+            
+            if (!email) {
+                showMessage(messageElement, 'יש להזין אימייל או להירשם תחילה', 'error');
+                return;
+            }
+            
+            try {
+                // יצירת מפתח אקראי שישמש כ-challenge
+                const challenge = new Uint8Array(32);
+                window.crypto.getRandomValues(challenge);
+                
+                // יצירת אפשרויות רישום
+                const publicKeyOptions = {
+                    challenge: challenge,
+                    rp: {
+                        name: "מערכת האימות הביומטרי שלך",
+                        id: window.location.hostname
+                    },
+                    user: {
+                        id: new TextEncoder().encode(email),
+                        name: email,
+                        displayName: email
+                    },
+                    pubKeyCredParams: [
+                        { type: "public-key", alg: -7 },  // ES256
+                        { type: "public-key", alg: -257 } // RS256
+                    ],
+                    authenticatorSelection: {
+                        authenticatorAttachment: "platform",
+                        requireResidentKey: false,
+                        userVerification: "required"
+                    },
+                    timeout: 60000,
+                    attestation: "none"
+                };
+                
+                // יצירת קרדנציאל חדש
+                const credential = await navigator.credentials.create({
+                    publicKey: publicKeyOptions
+                });
+                
+                // המרת הנתונים לפורמט שאפשר לשלוח ל-API
+                const credentialId = bufferToBase64(credential.rawId);
+                const clientDataJSON = bufferToBase64(credential.response.clientDataJSON);
+                const attestationObject = bufferToBase64(credential.response.attestationObject);
+                
+                // שליחת הקרדנציאל לשרת
+                const response = await fetch(API_REG_URL + "/credential", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email,
+                        credentialID: credentialId,
+                        publicKey: attestationObject,
+                        clientData: clientDataJSON
+                    }),
+                });
+                
+                const data = await response.json();
+                
+                if (!data.e || data.e === 'no') {
+                    showMessage(messageElement, 'רישום אמצעי זיהוי ביומטרי הושלם בהצלחה!', 'success');
+                    localStorage.setItem('credentialId', credentialId);
+                    storedCredentialId = credentialId;
+                } else {
+                    showMessage(messageElement, 'שגיאה ברישום אמצעי זיהוי: ' + (data.error || 'אירעה שגיאה'), 'error');
+                }
+            } catch (error) {
+                console.error('שגיאה ברישום אמצעי זיהוי ביומטרי:', error);
+                showMessage(messageElement, 'אירעה שגיאה בתהליך רישום אמצעי הזיהוי: ' + error.message, 'error');
+            }
+        }
+        
+        // פונקציה להתחברות עם אמצעי ביומטרי
+        async function loginWithBiometric() {
+            const email = document.getElementById('loginEmail').value || storedEmail;
+            const messageElement = document.getElementById('loginMessage');
+            
+            if (!email) {
+                showMessage(messageElement, 'יש להזין אימייל', 'error');
+                return;
+            }
+            
+            try {
+                // יצירת מפתח אקראי שישמש כ-challenge
+                const challenge = new Uint8Array(32);
+                window.crypto.getRandomValues(challenge);
+                
+                const credentialId = storedCredentialId || localStorage.getItem('credentialId');
+                
+                if (!credentialId) {
+                    showMessage(messageElement, 'לא נמצא אמצעי זיהוי רשום. עליך לרשום אמצעי זיהוי תחילה.', 'error');
+                    return;
+                }
+                
+                // יצירת אפשרויות אימות
+                const publicKeyOptions = {
+                    challenge: challenge,
+                    rpId: window.location.hostname,
+                    allowCredentials: [{
+                        id: base64ToBuffer(credentialId),
+                        type: 'public-key',
+                    }],
+                    timeout: 60000,
+                    userVerification: "required"
+                };
+                
+                // קבלת אימות (assertion)
+                const assertion = await navigator.credentials.get({
+                    publicKey: publicKeyOptions
+                });
+                
+                // המרת הנתונים לפורמט שאפשר לשלוח ל-API
+                const assertionId = bufferToBase64(assertion.rawId);
+                const clientDataJSON = bufferToBase64(assertion.response.clientDataJSON);
+                const authenticatorData = bufferToBase64(assertion.response.authenticatorData);
+                const signature = bufferToBase64(assertion.response.signature);
+                
+                // שליחת האימות לשרת
+                const response = await fetch(API_LOGIN_URL + "/credential", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        credentialID: assertionId,
+                        email: email,
+                        authenticatorData: authenticatorData,
+                        clientData: clientDataJSON,
+                        signature: signature
+                    }),
+                });
+                
+                const data = await response.json();
+                
+                if (!data.e || data.e === 'no') {
+                    showMessage(messageElement, 'התחברת בהצלחה עם אמצעי זיהוי ביומטרי!', 'success');
+                    
+                    // שמירת הטוקן אם קיים
+                    if (data.token) {
+                        localStorage.setItem('token', data.token);
+                    }
+                    
+                    // כאן תוכל להפנות את המשתמש לדף הבית
+                } else {
+                    showMessage(messageElement, 'שגיאה בהתחברות: ' + (data.error || 'אירעה שגיאה'), 'error');
+                }
+            } catch (error) {
+                console.error('שגיאה בהתחברות עם אמצעי זיהוי ביומטרי:', error);
+                showMessage(messageElement, 'אירעה שגיאה בתהליך ההתחברות: ' + error.message, 'error');
+            }
+        }
+        
+        // פונקציית עזר להצגת הודעות
+        function showMessage(element, message, type) {
+            element.textContent = message;
+            element.className = 'message ' + type;
+            element.style.display = 'block';
+            
+            // הסתרת ההודעה אחרי 5 שניות
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+        
+        // מעבר בין הלשוניות
+        function setupTabs() {
+            const registerTab = document.getElementById('registerTab');
+            const loginTab = document.getElementById('loginTab');
+            const registerForm = document.getElementById('registerForm');
+            const loginForm = document.getElementById('loginForm');
+            
+            registerTab.addEventListener('click', () => {
+                registerTab.classList.add('active');
+                loginTab.classList.remove('active');
+                registerForm.classList.add('active');
+                loginForm.classList.remove('active');
+            });
+            
+            loginTab.addEventListener('click', () => {
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
+                loginForm.classList.add('active');
+                registerForm.classList.remove('active');
+            });
+        }
+        
+        // התחברות לאירועים
+        function setupEventListeners() {
+            document.getElementById('registerButton').addEventListener('click', registerUser);
+            document.getElementById('loginButton').addEventListener('click', loginUser);
+            document.getElementById('registerBiometricButton').addEventListener('click', registerBiometric);
+            document.getElementById('loginBiometricButton').addEventListener('click', loginWithBiometric);
+        }
+        
+        // אתחול הדף
+        function init() {
+            checkWebAuthnSupport();
+            setupTabs();
+            setupEventListeners();
+        }
+        
+        // הפעלת פונקציית האתחול כשהדף נטען
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>
