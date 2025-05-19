@@ -1,61 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Login & Register</title>
+  <meta charset="UTF-8" />
+  <title>Register with Passkey</title>
 </head>
 <body>
-  <h2>Register</h2>
+  <h1>Register with Passkey</h1>
   <form id="registerForm">
-    <input type="email" id="regEmail" placeholder="Email" required><br>
-    <input type="text" id="credentialID" placeholder="Credential ID" required><br>
-    <input type="text" id="publicKey" placeholder="Public Key" required><br>
+    <label>Email: <input type="email" id="email" required /></label>
     <button type="submit">Register</button>
   </form>
 
-  <h2>Login</h2>
-  <form id="loginForm">
-    <input type="email" id="logEmail" placeholder="Email" required><br>
-    <input type="text" id="credentialIDLogin" placeholder="Credential ID" required><br>
-    <button type="submit">Login</button>
-  </form>
-
   <script>
-    const registerForm = document.getElementById("registerForm");
-    registerForm.addEventListener("submit", async (e) => {
+    const form = document.getElementById('registerForm');
+
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const email = document.getElementById('email').value;
 
-      const email = document.getElementById("regEmail").value;
-      const credentialID = document.getElementById("credentialID").value;
-      const publicKey = document.getElementById("publicKey").value;
+      try {
+        // 1. בקשת פרטי הרשמה מהשרת (כולל challenge)
+        const optionsResponse = await fetch('https://jwt-node-mongodb.onrender.com/reg-options', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
 
-      const res = await fetch("https://jwt-node-mongodb.onrender.com/reg", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, credentialID, publicKey })
-      });
+        const options = await optionsResponse.json();
 
-      const data = await res.json();
-      console.log("Register response:", data);
-      alert("Register: " + JSON.stringify(data));
-    });
+        // 2. המרת המחרוזות לבינארי (נדרש על ידי WebAuthn)
+        options.challenge = Uint8Array.from(atob(options.challenge), c => c.charCodeAt(0));
+        options.user.id = Uint8Array.from(atob(options.user.id), c => c.charCodeAt(0));
 
-    const loginForm = document.getElementById("loginForm");
-    loginForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
+        // 3. בקשת יצירת מפתח גישה בדפדפן
+        const credential = await navigator.credentials.create({ publicKey: options });
 
-      const email = document.getElementById("logEmail").value;
-      const credentialID = document.getElementById("credentialIDLogin").value;
+        // 4. שליחת תוצאת המפתח לשרת
+        const credentialData = {
+          email,
+          credentialID: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))),
+          publicKey: btoa(String.fromCharCode(...new Uint8Array(credential.response.attestationObject)))
+        };
 
-      const res = await fetch("https://jwt-node-mongodb.onrender.com/log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, credentialID })
-      });
+        const result = await fetch('https://jwt-node-mongodb.onrender.com/reg', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(credentialData)
+        });
 
-      const data = await res.json();
-      console.log("Login response:", data);
-      alert("Login: " + JSON.stringify(data));
+        const finalRes = await result.json();
+        alert(JSON.stringify(finalRes));
+      } catch (err) {
+        console.error(err);
+        alert('Registration failed');
+      }
     });
   </script>
 </body>
