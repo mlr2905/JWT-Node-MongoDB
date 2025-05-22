@@ -76,65 +76,317 @@ function generateOTP() {
 
 
 module.exports.registerCredential = async (request, response) => {
-  const { email, credentialID, publicKey } = request.body;
+  const { email, credentialID, publicKey, credentialName } = request.body;
 
   try {
+    // Validation
+    if (!email || !credentialID || !publicKey) {
+      return response.status(400).json({ 
+        e: 'yes', 
+        error: 'Missing required fields: email, credentialID, and publicKey' 
+      });
+    }
+
+    // חיפוש המשתמש
     const user = await User.findOne({ email });
     if (!user) {
-      return response.status(404).json({ e: 'yes', error: 'User not found' });
+      return response.status(404).json({ 
+        e: 'yes', 
+        error: 'User not found' 
+      });
     }
 
-    // אם כבר קיים מפתח עם credentialID הזה, נמחק קודם (או מחזירים שגיאה)
-    const existing = await WebAuthnCredential.findOne({ credentialID });
-    if (existing) {
-      await WebAuthnCredential.deleteOne({ credentialID });
+    // בדיקה אם כבר קיים credential עם אותו ID
+    const existingCredential = await WebAuthnCredential.findOne({ credentialID });
+    if (existingCredential) {
+      return response.status(409).json({ 
+        e: 'yes', 
+        error: 'Credential already exists' 
+      });
     }
 
+    // יצירת שם אוטומטי ל-credential אם לא סופק
+    const deviceName = credentialName || `Access Key ${new Date().toLocaleDateString()}`;
+
+    // שמירת ה-credential החדש
     const newCredential = new WebAuthnCredential({
       user: user._id,
       credentialID,
       publicKey,
       counter: 0,
-      createdAt: new Date()
+      deviceName: deviceName,
+      createdAt: new Date(),
+      lastUsed: null
     });
 
     await newCredential.save();
 
-    return response.status(201).json({ e: 'no', code: 'credential_registered' });
-  }
-  catch (err) {
-    console.error(err);
-    return response.status(400).json({ e: 'yes', error: err.message });
+    // ספירת מספר ה-credentials של המשתמש
+    const credentialCount = await WebAuthnCredential.countDocuments({ user: user._id });
+
+    // שליחת אימייל התראה על הוספת Access Key חדש
+    await sendCredentialRegisteredEmail(email, deviceName, credentialCount);
+
+    return response.status(201).json({ 
+      e: 'no', 
+      code: 'credential_registered',
+      message: 'Access key registered successfully',
+      credential: {
+        id: newCredential._id,
+        deviceName: deviceName,
+        createdAt: newCredential.createdAt
+      }
+    });
+
+  } catch (err) {
+    console.error('Credential registration error:', err);
+    return response.status(500).json({ 
+      e: 'yes', 
+      error: 'Failed to register access key' 
+    });
   }
 };
 
+
+// module.exports.loginWithCredential = async (request, response) => {
+//   const { credentialID, signature ,email} = request.body;
+
+//   try {
+//     const credential = await WebAuthnCredential.findOne({ credentialID }).populate('user');
+//     if (!credential) {
+//       return response.status(401).json({ e: 'yes', error: 'Credential not recognized' });
+//     }
+
+//     // כאן תבצע את אימות החתימה עם publicKey (תלוי איך אתה מיישם את האימות)
+//     // נניח שעברת את האימות, אז נשלח חזרה אישור כניסה:
+//     const mailOptions = {
+//       from: 'skyrocket.ask@gmail.com',
+//       to: email,
+//       subject: 'Successful registration - welcome to our website',
+//       html:
+//         `
+//         <p>We are delighted you chose to sign up for our website!</p>
+//         <p>We look forward to seeing you soon and providing you access to all our exciting services and content.</p>
+//         <p>Please keep your password: <b>Access key</b> safe and don't forget to check the homepage for updates!</p>
+//         <p><a href="https://skyrocket.onrender.com/login.html?email=${email}" style="color: blue; padding: 10px 20px; text-decoration: none; border-radius: 5px; background-color: transparent; border: 2px solid blue;">Login</a></p>
+//         </br>
+//         <p>Best regards,</p>
+//         <p>The Skyrocket Team</p>
+        
+//          `
+//     };
+
+//     // שליחת האימייל
+//     transporter.sendMail(mailOptions, function (error, info) {
+//       if (error) {
+//         console.log(error);
+//         return response.status(404).json({ error });
+
+//       } else {
+//         console.log('Email sent: ' + info.response);
+//         return response.status(201).json({ username: username, email: email, mongo_id: user._id.toString() });
+
+//       }
+//     });
+//     return response.status(200).json({
+//       e: 'no',
+//       code: 'login_succeeded',
+//       user: {
+//         email: credential.user.email,
+//         id: credential.user._id
+//       }
+//     });
+//   }
+//   catch (err) {
+//     console.error(err);
+//     return response.status(400).json({ e: 'yes', error: err.message });
+//   }
+// };
 module.exports.loginWithCredential = async (request, response) => {
-  const { credentialID, signature } = request.body;
+  const { credentialID, signature, email, clientDataJSON, authenticatorData } = request.body;
 
   try {
-    const credential = await WebAuthnCredential.findOne({ credentialID }).populate('user');
-    if (!credential) {
-      return response.status(401).json({ e: 'yes', error: 'Credential not recognized' });
+    // Validation של הנתונים הנדרשים
+    if (!credentialID || !signature || !email) {
+      return response.status(400).json({ 
+        e: 'yes', 
+        error: 'Missing required fields: credentialID, signature, and email' 
+      });
     }
 
-    // כאן תבצע את אימות החתימה עם publicKey (תלוי איך אתה מיישם את האימות)
-    // נניח שעברת את האימות, אז נשלח חזרה אישור כניסה:
+    // חיפוש ה-credential במסד הנתונים
+    const credential = await WebAuthnCredential.findOne({ credentialID }).populate('user');
+    if (!credential) {
+      return response.status(401).json({ 
+        e: 'yes', 
+        error: 'Credential not recognized' 
+      });
+    }
 
+    // בדיקה שהאימייל תואם למשתמש
+    if (credential.user.email !== email) {
+      return response.status(401).json({ 
+        e: 'yes', 
+        error: 'Email does not match credential owner' 
+      });
+    }
+
+  
+
+    // עדכון זמן ההתחברות האחרון
+    credential.lastUsed = new Date();
+    await credential.save();
+
+    // בדיקה אם זו התחברות מ-IP חדש
+    const ip = request.ip || request.connection.remoteAddress || 'unknown';
+    const userAgent = request.get('User-Agent') || 'unknown';
+    
+    const previousConnection = await Connection.findOne({ 
+      email: email, 
+      ipAddress: ip 
+    });
+
+    // יצירת JWT token
+    const token = createToken(credential.user._id.toString(), credential.user.email);
+
+    // אם זו התחברות מ-IP חדש, שלח התראה באימייל
+    if (!previousConnection) {
+      // שמירת ה-connection החדש
+      const newConnection = new Connection({ 
+        email: email, 
+        ipAddress: ip,
+        userAgent: userAgent,
+        loginMethod: 'webauthn'
+      });
+      await newConnection.save();
+
+      // שליחת אימייל התראה
+      await sendNewDeviceAlert(email, ip, userAgent);
+    }
+
+    // החזרת תשובה מוצלחת
     return response.status(200).json({
       e: 'no',
       code: 'login_succeeded',
+      jwt: token,
       user: {
         email: credential.user.email,
-        id: credential.user._id
+        id: credential.user._id,
+        name: credential.user.name || credential.user.email
       }
     });
-  }
-  catch (err) {
-    console.error(err);
-    return response.status(400).json({ e: 'yes', error: err.message });
+
+  } catch (err) {
+    console.error('WebAuthn login error:', err);
+    return response.status(500).json({ 
+      e: 'yes', 
+      error: 'Internal server error during authentication' 
+    });
   }
 };
 
+
+
+// פונקציה לשליחת התראה על התחברות מהתקן חדש
+async function sendNewDeviceAlert(email, ip, userAgent) {
+  const timestamp = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' GMT';
+  
+  const mailOptions = {
+    from: 'skyrocket.ask@gmail.com',
+    to: email,
+    subject: 'New device sign-in detected - Skyrocket',
+    html: `
+      <h2>New Sign-in Alert</h2>
+      <p>We detected a new sign-in to your account using an access key:</p>
+      <ul>
+        <li><strong>Email:</strong> ${email}</li>
+        <li><strong>Time:</strong> ${timestamp}</li>
+        <li><strong>IP Address:</strong> ${ip}</li>
+        <li><strong>Device:</strong> ${userAgent}</li>
+        <li><strong>Method:</strong> Access Key (WebAuthn)</li>
+      </ul>
+      
+      <p>If this was you, you can safely ignore this message.</p>
+      <p>If you don't recognize this sign-in, please secure your account immediately by removing any unauthorized access keys from your account settings.</p>
+      
+      <hr>
+      <p>Best regards,<br>
+      The Skyrocket Team</p>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('New device alert sent to:', email);
+  } catch (error) {
+    console.error('Failed to send new device alert:', error);
+    // לא נזרוק שגיאה כי זה לא אמור למנוע את ההתחברות
+  }
+}
+async function sendCredentialRegisteredEmail(email, deviceName, totalCredentials) {
+  const timestamp = new Date().toLocaleString('en-US', {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short'
+  });
+
+  const mailOptions = {
+    from: 'skyrocket.ask@gmail.com',
+    to: email,
+    subject: 'New Access Key Added - Skyrocket',
+    html: `
+      <h2>Access Key Successfully Added</h2>
+      <p>A new access key has been registered to your Skyrocket account:</p>
+      
+      <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+        <ul style="margin: 0; padding-left: 20px;">
+          <li><strong>Device Name:</strong> ${deviceName}</li>
+          <li><strong>Date Added:</strong> ${timestamp}</li>
+          <li><strong>Total Access Keys:</strong> ${totalCredentials}</li>
+        </ul>
+      </div>
+      
+      <h3>What are Access Keys?</h3>
+      <p>Access Keys allow you to sign in securely without typing a password. You can use your device's built-in security features like fingerprint, face recognition, or security keys.</p>
+      
+      <h3>Security Notice</h3>
+      <p>If you didn't add this access key, please:</p>
+      <ol>
+        <li>Log in to your account immediately</li>
+        <li>Review and remove any unauthorized access keys</li>
+        <li>Change your password</li>
+        <li>Contact our support team</li>
+      </ol>
+      
+      <p style="margin: 20px 0;">
+        <a href="https://skyrocket.onrender.com/login.html?email=${email}" 
+           style="background-color: #28a745; color: white; padding: 12px 24px; 
+                  text-decoration: none; border-radius: 5px; display: inline-block;">
+          Login with Access Key
+        </a>
+      </p>
+      
+      <hr>
+      <p>Best regards,<br>
+      The Skyrocket Team</p>
+      
+      <p style="font-size: 12px; color: #666;">
+        You can manage your access keys from your account settings page.
+      </p>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('Credential registration email sent to:', email);
+  } catch (error) {
+    console.error('Failed to send credential registration email:', error);
+  }
+}
 module.exports.authcode = async (request, response) => {
   const email = request.body.email
   console.log("email", email);
