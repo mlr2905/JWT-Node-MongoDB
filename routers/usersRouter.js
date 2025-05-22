@@ -7,8 +7,8 @@ const router = Router();
 router.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../static/500.html'));
 });
-router.post('/loginWithCredential', usersController.loginWithCredential);
-router.post('/registerCredential', usersController.registerCredential);
+router.post('/loginWith', usersController.loginWithCredential);
+router.post('/register', usersController.registerCredential);
 
 router.post('/signup', usersController.signup_post);
 router.post('/login', usersController.login_post);
