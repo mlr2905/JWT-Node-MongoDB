@@ -128,11 +128,7 @@
                 <label for="registerEmail">כתובת אימייל</label>
                 <input type="email" id="registerEmail" placeholder="הזן את האימייל שלך">
             </div>
-            <div class="form-group">
-                <label for="registerPassword">סיסמה</label>
-                <input type="password" id="registerPassword" placeholder="בחר סיסמה">
-            </div>
-            <button id="registerButton">הירשם</button>
+          
             <button id="registerBiometricButton" disabled>הוסף זיהוי ביומטרי</button>
             <div id="registerMessage" class="message" style="display: none;"></div>
         </div>
@@ -142,11 +138,7 @@
                 <label for="loginEmail">כתובת אימייל</label>
                 <input type="email" id="loginEmail" placeholder="הזן את האימייל שלך">
             </div>
-            <div class="form-group">
-                <label for="loginPassword">סיסמה</label>
-                <input type="password" id="loginPassword" placeholder="הזן סיסמה">
-            </div>
-            <button id="loginButton">התחבר</button>
+           
             <button id="loginBiometricButton" disabled>התחבר עם זיהוי ביומטרי</button>
             <div id="loginMessage" class="message" style="display: none;"></div>
         </div>
@@ -212,81 +204,7 @@
             return bytes.buffer;
         }
         
-        // פונקציה לרישום רגיל (ללא ביומטריה)
-        async function registerUser() {
-            const email = document.getElementById('registerEmail').value;
-            const password = document.getElementById('registerPassword').value;
-            const messageElement = document.getElementById('registerMessage');
-            
-            if (!email || !password) {
-                showMessage(messageElement, 'יש למלא את כל השדות', 'error');
-                return;
-            }
-            
-            try {
-                const response = await fetch(API_REG_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email, password }),
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showMessage(messageElement, 'הרישום בוצע בהצלחה! כעת תוכל להוסיף זיהוי ביומטרי', 'success');
-                    localStorage.setItem('userEmail', email);
-                    storedEmail = email;
-                } else {
-                    showMessage(messageElement, 'שגיאה ברישום: ' + (data.error || 'אירעה שגיאה'), 'error');
-                }
-            } catch (error) {
-                console.error('שגיאה ברישום:', error);
-                showMessage(messageElement, 'אירעה שגיאה בתהליך הרישום', 'error');
-            }
-        }
-        
-        // פונקציה להתחברות רגילה (ללא ביומטריה)
-        async function loginUser() {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const messageElement = document.getElementById('loginMessage');
-            
-            if (!email || !password) {
-                showMessage(messageElement, 'יש למלא את כל השדות', 'error');
-                return;
-            }
-            
-            try {
-                const response = await fetch(API_LOGIN_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email, password }),
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showMessage(messageElement, 'התחברת בהצלחה!', 'success');
-                    localStorage.setItem('userEmail', email);
-                    storedEmail = email;
-                    
-                    // כאן תוכל להפנות את המשתמש לדף הבית או לשמור את הטוקן
-                    if (data.token) {
-                        localStorage.setItem('token', data.token);
-                    }
-                } else {
-                    showMessage(messageElement, 'שגיאה בהתחברות: ' + (data.error || 'אירעה שגיאה'), 'error');
-                }
-            } catch (error) {
-                console.error('שגיאה בהתחברות:', error);
-                showMessage(messageElement, 'אירעה שגיאה בתהליך ההתחברות', 'error');
-            }
-        }
-        
+
         // פונקציה לרישום אמצעי ביומטרי
         async function registerBiometric() {
             const email = document.getElementById('registerEmail').value || storedEmail;
@@ -482,9 +400,7 @@
         
         // התחברות לאירועים
         function setupEventListeners() {
-            document.getElementById('registerButton').addEventListener('click', registerUser);
-            document.getElementById('loginButton').addEventListener('click', loginUser);
-            document.getElementById('registerBiometricButton').addEventListener('click', registerBiometric);
+=            document.getElementById('registerBiometricButton').addEventListener('click', registerBiometric);
             document.getElementById('loginBiometricButton').addEventListener('click', loginWithBiometric);
         }
         
