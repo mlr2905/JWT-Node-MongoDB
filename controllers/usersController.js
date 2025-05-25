@@ -739,19 +739,18 @@ module.exports.search_users = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
 module.exports.decryptPassword = async (req, res) => {
-  const encryptedPassword = req.query.password
+  const encryptedPassword = req.query.password;
   console.log('encryptedPassword', encryptedPassword);
   try {
     const iv = Buffer.from(process.env.IV, 'hex');
     const key = Buffer.from(process.env.KEY, 'hex');
-    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv); 
     let decryptedPassword = decipher.update(encryptedPassword, 'hex', 'utf8');
     decryptedPassword += decipher.final('utf8');
     res.status(200).json({ Succeeded: `This is your password: || ${decryptedPassword} ||` });
 
   } catch (err) {
-    res.status(404).json({ err: `'FALSE POSITIVE TEST': || ${encryptedPassword} ||` });
+    res.status(404).json({ err: `'FALSE POSITIVE TEST': || ${encryptedPassword} ||` });
   }
 };
