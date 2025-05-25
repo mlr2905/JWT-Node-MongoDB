@@ -1,13 +1,25 @@
 const User = require("../models/User");
 const Connection = require("../models/Connection");
 const WebAuthnCredential = require('../models/WebAuthn');
-
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const { log } = require("util");
-const sendEmail = require('./sendEmailController')
 
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.USER,
+    pass: process.env.PASS
+  },
+  tls: {
+    rejectUnauthorized: false
+  }
+
+});
 
 
 
@@ -111,16 +123,8 @@ module.exports.registerCredential = async (request, response) => {
     // ספירת מספר ה-credentials של המשתמש
     const credentialCount = await WebAuthnCredential.countDocuments({ user: user._id });
 
-    // שליחת מייל באמצעות הפונקציה הגנרית
-    const emailResult = await sendEmail.sendEmail('credential_registered', email, {
-      deviceName: deviceName,
-      totalCredentials: credentialCount
-    });
-
-    if (!emailResult.success) {
-      console.error('Failed to send credential registered email:', emailResult.error);
-      // לא נעצור את התהליך בגלל שגיאת מייל
-    }
+    // שליחת אימייל התראה על הוספת Access Key חדש
+    await sendCredentialRegisteredEmail(email, deviceName, credentialCount);
 
     return response.status(201).json({ 
       e: 'no', 
@@ -171,6 +175,8 @@ module.exports.loginWithCredential = async (request, response) => {
       });
     }
 
+  
+
     // עדכון זמן ההתחברות האחרון
     credential.lastUsed = new Date();
     await credential.save();
@@ -187,7 +193,7 @@ module.exports.loginWithCredential = async (request, response) => {
     // יצירת JWT token
     const token = createToken(credential.user._id.toString(), credential.user.email);
 
-    // אם זו התחברות מ-IP חדש, שלח התראה באמצעות הפונקציה הגנרית
+    // אם זו התחברות מ-IP חדש, שלח התראה באימייל
     if (!previousConnection) {
       // שמירת ה-connection החדש
       const newConnection = new Connection({ 
@@ -198,16 +204,8 @@ module.exports.loginWithCredential = async (request, response) => {
       });
       await newConnection.save();
 
-      // שליחת מייל התראה באמצעות הפונקציה הגנרית
-      const emailResult = await sendEmail.sendEmail('new_device_alert', email, {
-        ip: ip,
-        userAgent: userAgent
-      });
-
-      if (!emailResult.success) {
-        console.error('Failed to send new device alert:', emailResult.error);
-        // לא נעצור את התהליך בגלל שגיאת מייל
-      }
+      // שליחת אימייל התראה
+      await sendNewDeviceAlert(email, ip, userAgent);
     }
 
     // החזרת תשובה מוצלחת
@@ -231,6 +229,108 @@ module.exports.loginWithCredential = async (request, response) => {
   }
 };
 
+
+
+// פונקציה לשליחת התראה על התחברות מהתקן חדש
+async function sendNewDeviceAlert(email, ip, userAgent) {
+  const timestamp = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' GMT';
+  
+  const mailOptions = {
+    from: 'skyrocket.ask@gmail.com',
+    to: email,
+    subject: 'New device sign-in detected - Skyrocket',
+    html: `
+      <h2>New Sign-in Alert</h2>
+      <p>We detected a new sign-in to your account using an access key:</p>
+      <ul>
+        <li><strong>Email:</strong> ${email}</li>
+        <li><strong>Time:</strong> ${timestamp}</li>
+        <li><strong>IP Address:</strong> ${ip}</li>
+        <li><strong>Device:</strong> ${userAgent}</li>
+        <li><strong>Method:</strong> Access Key (WebAuthn)</li>
+      </ul>
+      
+      <p>If this was you, you can safely ignore this message.</p>
+      <p>If you don't recognize this sign-in, please secure your account immediately by removing any unauthorized access keys from your account settings.</p>
+      
+      <hr>
+      <p>Best regards,<br>
+      The Skyrocket Team</p>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('New device alert sent to:', email);
+  } catch (error) {
+    console.error('Failed to send new device alert:', error);
+    // לא נזרוק שגיאה כי זה לא אמור למנוע את ההתחברות
+  }
+}
+async function sendCredentialRegisteredEmail(email, deviceName, totalCredentials) {
+  const timestamp = new Date().toLocaleString('en-US', {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short'
+  });
+
+  const mailOptions = {
+    from: 'skyrocket.ask@gmail.com',
+    to: email,
+    subject: 'New Access Key Added - Skyrocket',
+    html: `
+      <h2>Access Key Successfully Added</h2>
+      <p>A new access key has been registered to your Skyrocket account:</p>
+      
+      <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+        <ul style="margin: 0; padding-left: 20px;">
+          <li><strong>Device Name:</strong> ${deviceName}</li>
+          <li><strong>Date Added:</strong> ${timestamp}</li>
+          <li><strong>Total Access Keys:</strong> ${totalCredentials}</li>
+        </ul>
+      </div>
+      
+      <h3>What are Access Keys?</h3>
+      <p>Access Keys allow you to sign in securely without typing a password. You can use your device's built-in security features like fingerprint, face recognition, or security keys.</p>
+      
+      <h3>Security Notice</h3>
+      <p>If you didn't add this access key, please:</p>
+      <ol>
+        <li>Log in to your account immediately</li>
+        <li>Review and remove any unauthorized access keys</li>
+        <li>Change your password</li>
+        <li>Contact our support team</li>
+      </ol>
+      
+      <p style="margin: 20px 0;">
+        <a href="https://skyrocket.onrender.com/login.html?email=${email}" 
+           style="background-color: #28a745; color: white; padding: 12px 24px; 
+                  text-decoration: none; border-radius: 5px; display: inline-block;">
+          Login with Access Key
+        </a>
+      </p>
+      
+      <hr>
+      <p>Best regards,<br>
+      The Skyrocket Team</p>
+      
+      <p style="font-size: 12px; color: #666;">
+        You can manage your access keys from your account settings page.
+      </p>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('Credential registration email sent to:', email);
+  } catch (error) {
+    console.error('Failed to send credential registration email:', error);
+  }
+}
 module.exports.authcode = async (request, response) => {
   const email = request.body.email
   console.log("email", email);
@@ -279,6 +379,157 @@ module.exports.authcode = async (request, response) => {
   }
 }
 
+
+module.exports.signup_post = async (request, response) => {
+  const searchQuery = request.body;
+  console.log(searchQuery)
+  const email = searchQuery.email
+  const authProvider = searchQuery.authProvider
+  const iv = Buffer.from(process.env.IV, 'hex');
+  const key = Buffer.from(process.env.KEY, 'hex');
+  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+    let encryptedPassword = cipher.update(searchQuery.password, 'utf8', 'hex');
+  encryptedPassword += cipher.final('hex');
+  const password = encryptedPassword;
+  const username = email.substring(0, email.indexOf('@'));
+  try {
+    console.log('mongo email, password', email, password);
+    const user = await User.create({ email, password ,authProvider});
+
+    // הגדרת הגישה לחשבון ה-Gmail שלך
+
+
+    // הגדרת האימייל שישלח
+    const mailOptions = {
+      from: 'skyrocket.ask@gmail.com',
+      to: email,
+      subject: 'Successful registration - welcome to our website',
+      html:
+        `
+        <p>We are delighted you chose to sign up for our website!</p>
+        <p>We look forward to seeing you soon and providing you access to all our exciting services and content.</p>
+        <p>Please keep your password: <b>${searchQuery.password}</b> safe and don't forget to check the homepage for updates!</p>
+        <p><a href="https://skyrocket.onrender.com/login.html?email=${email}" style="color: blue; padding: 10px 20px; text-decoration: none; border-radius: 5px; background-color: transparent; border: 2px solid blue;">Login</a></p>
+        </br>
+        <p>Best regards,</p>
+        <p>The Skyrocket Team</p>
+        
+         `
+    };
+
+    // שליחת האימייל
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.log(error);
+        return response.status(404).json({ error });
+
+      } else {
+        console.log('Email sent: ' + info.response);
+        return response.status(201).json({ username: username, email: email, mongo_id: user._id.toString() });
+
+      }
+    });
+
+  }
+  catch (err) {
+    const errors = handleErrors(err);
+    return response.status(400).json({ errors });
+  }
+}
+
+
+
+module.exports.login_post = async (req, res) => {
+  try {
+    let errors = { email: '', password: '' };
+    const searchQuery = req.body;
+    const email = searchQuery.email;
+    const ip = searchQuery.ip;
+    const userAgent = searchQuery.userAgent;
+    console.log("abc", ip, userAgent);
+
+    // Check if searching by password
+    if (searchQuery.password) {
+      const password = searchQuery.password;
+      const iv = Buffer.from(process.env.IV, 'hex');
+      const key = Buffer.from(process.env.KEY, 'hex');
+      const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+      let encryptedPassword = cipher.update(password, 'utf8', 'hex');
+      encryptedPassword += cipher.final('hex');
+      searchQuery.password = encryptedPassword;
+    }
+
+    // Find the user in the database
+    const user = await User.findOne({ email: email });
+
+    if (user === null) {
+      errors.email = 'That email is not registered';
+      return res.status(404).json({ errors });
+    } else {
+      if (searchQuery.password !== user.password) {
+        console.log("Wrong password try again");
+
+        errors.password = 'Wrong password try again';
+        return res.status(400).json({ errors });
+      } else {
+        console.log("התחברות מוצלחת");
+
+        // Check for previous Connection
+        const previousConnection = await Connection.find({ "email": email, "ipAddress": ip });
+
+        if (!previousConnection || previousConnection.length === 0) {
+          const timestamp = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' GMT';
+
+          // Add a new connection record
+          const newConnection = new Connection({ "email": email, "ipAddress": ip });
+          await newConnection.save();
+
+          const mailOptions = {
+            from: 'skyrocket.ask@gmail.com',
+            to: email,
+            subject: 'Successful registration - welcome to our website',
+            html:
+              `
+              <p>We're verifying a recent sign-in for ${email}:</p>
+              <p>Timestamp:	${timestamp}</P>
+              <p>IP Address:	${ip}</p>
+              <p>User agent:	${userAgent}</p>
+              <p>You're receiving this message because of a successful sign-in from a device that we didn’t recognize. If you believe that this sign-in is suspicious, please reset your password immediately.</p>
+              <p>If you're aware of this sign-in, please disregard this notice. This can happen when you use your browser's incognito or private browsing mode or clear your cookies.</p>
+              
+              <p>Thanks,</p>
+              </br>
+              <p>Best regards,</p>
+              <p>The Skyrocket Team</p>
+               `
+          };
+
+          // שליחת האימייל
+          transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+              console.log(error);
+              return res.status(500).json({ error });
+            } else {
+              console.log('Email sent: ' + info.response);
+              // Create token and return it to the user
+              const id = user._id.toString();
+              const token = createToken(id, user.email);
+              return res.status(200).json({ jwt: token });
+            }
+          });
+        } else {
+          const id = user._id.toString();
+          const token = createToken(id, user.email);
+          return res.status(200).json({ jwt: token });
+        }
+      }
+    }
+
+  } catch (err) {
+    return res.status(400).json({ "e":"yes","error": errors,err});
+  }
+}
+
 module.exports.verifyCode = async (request, response) => {
   let errors = { email: '', password: '' };
 
@@ -324,120 +575,6 @@ module.exports.verifyCode = async (request, response) => {
   }
 
 }
-module.exports.signup_post = async (request, response) => {
-  const searchQuery = request.body;
-  console.log(searchQuery);
-  const email = searchQuery.email;
-  const authProvider = searchQuery.authProvider;
-  const iv = Buffer.from(process.env.IV, 'hex');
-  const key = Buffer.from(process.env.KEY, 'hex');
-  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-  let encryptedPassword = cipher.update(searchQuery.password, 'utf8', 'hex');
-  encryptedPassword += cipher.final('hex');
-  const password = encryptedPassword;
-  const username = email.substring(0, email.indexOf('@'));
-  
-  try {
-    console.log('mongo email, password', email, password);
-    const user = await User.create({ email, password, authProvider });
-
-    // שליחת מייל ברוכים הבאים באמצעות הפונקציה הגנרית
-    const emailResult = await sendEmail.sendEmail('user_registered', email, {
-      name: username,
-      password: searchQuery.password // הסיסמה הלא מוצפנת למייל
-    });
-
-    if (!emailResult.success) {
-      console.error('Failed to send welcome email:', emailResult.error);
-      return response.status(404).json({ error: emailResult.error });
-    }
-
-    console.log('Welcome email sent successfully');
-    return response.status(201).json({ 
-      username: username, 
-      email: email, 
-      mongo_id: user._id.toString() 
-    });
-
-  } catch (err) {
-    console.error('User registration error:', err);
-    const errors = handleErrors(err);
-    return response.status(400).json({ errors });
-  }
-};
-
-module.exports.login_post = async (req, res) => {
-  try {
-    let errors = { email: '', password: '' };
-    const searchQuery = req.body;
-    const email = searchQuery.email;
-    const ip = searchQuery.ip;
-    const userAgent = searchQuery.userAgent;
-    console.log("abc", ip, userAgent);
-
-    // Check if searching by password
-    if (searchQuery.password) {
-      const password = searchQuery.password;
-      const iv = Buffer.from(process.env.IV, 'hex');
-      const key = Buffer.from(process.env.KEY, 'hex');
-      const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-      let encryptedPassword = cipher.update(password, 'utf8', 'hex');
-      encryptedPassword += cipher.final('hex');
-      searchQuery.password = encryptedPassword;
-    }
-
-    // Find the user in the database
-    const user = await User.findOne({ email: email });
-
-    if (user === null) {
-      errors.email = 'That email is not registered';
-      return res.status(404).json({ errors });
-    } else {
-      if (searchQuery.password !== user.password) {
-        console.log("Wrong password try again");
-        errors.password = 'Wrong password try again';
-        return res.status(400).json({ errors });
-      } else {
-        console.log("התחברות מוצלחת");
-
-        // Check for previous Connection
-        const previousConnection = await Connection.find({ "email": email, "ipAddress": ip });
-
-        if (!previousConnection || previousConnection.length === 0) {
-          // Add a new connection record
-          const newConnection = new Connection({ "email": email, "ipAddress": ip });
-          await newConnection.save();
-
-          // שליחת מייל התראה באמצעות הפונקציה הגנרית
-          const emailResult = await sendEmail.sendEmail('login_from_new_device', email, {
-            ip: ip,
-            userAgent: userAgent,
-            timestamp: new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' GMT'
-          });
-
-          if (!emailResult.success) {
-            console.log('Failed to send new device alert:', emailResult.error);
-            return res.status(500).json({ error: emailResult.error });
-          }
-
-          console.log('New device alert sent successfully');
-          // Create token and return it to the user
-          const id = user._id.toString();
-          const token = createToken(id, user.email);
-          return res.status(200).json({ jwt: token });
-        } else {
-          const id = user._id.toString();
-          const token = createToken(id, user.email);
-          return res.status(200).json({ jwt: token });
-        }
-      }
-    }
-
-  } catch (err) {
-    return res.status(400).json({ "e": "yes", "error": errors, err });
-  }
-};
-
 module.exports.logout_get = (req, res) => {
   res.cookie('jwt', '', { maxAge: 1 });
   res.status(200).json({ status: "logged out" });
