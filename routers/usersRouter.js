@@ -5,7 +5,7 @@ const path = require('path');
 
 const router = Router();
 router.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../static/500.html'));
+    res.sendFile(path.join(__dirname, '../static/404.html'));
 });
 router.post('/loginWith', usersController.loginWithCredential);
 router.post('/register', usersController.registerCredential);
@@ -23,12 +23,7 @@ router.post('/verifyCode', usersController.verifyCode)
 router.use((req, res) => {
     res.status(404).sendFile(path.join(__dirname, '../static/404.html'));
 });
-// router.get('/', usersController.encrypt_and_update_all_passwords)
 
-// router.post('', usersController.post)
-// router.get('/:id', usersController.get_by_id)
-// router.delete('/:id', usersController.delete)
-// router.delete('/', usersController.deleteAll)
 
 
 
